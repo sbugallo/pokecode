@@ -2,7 +2,16 @@
   "name": "@sbugallo/pokecode",
   "version": "0.2.0-dev.0",
   "description": "A Pokémon-inspired virtual companion plugin for OpenCode.",
+  "author": "Sergio Bugallo",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sbugallo/pokecode.git"
+  },
+  "homepage": "https://github.com/sbugallo/pokecode#readme",
+  "bugs": {
+    "url": "https://github.com/sbugallo/pokecode/issues"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "bin": {
