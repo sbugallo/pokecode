@@ -1,6 +1,6 @@
 {
   "name": "@sbugallo/pokecode",
-  "version": "0.2.0",
+  "version": "0.3.0-dev.0",
   "description": "A Pokémon-inspired virtual companion plugin for OpenCode.",
   "author": "Sergio Bugallo",
   "license": "Apache-2.0",
