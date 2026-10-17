@@ -1,0 +1,76 @@
+{
+  "name": "@sbugallo/pokecode",
+  "version": "0.0.0",
+  "description": "A Pokémon-inspired virtual companion plugin for OpenCode.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "pokecode": "./dist/cli.js"
+  },
+  "packageManager": "bun@1.4.0",
+  "engines": {
+    "bun": ">=1.4.0",
+    "node": ">=20",
+    "opencode": ">=2.0.18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "oc-plugin": [
+    "server",
+    "tui"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./rpc": {
+      "types": "./dist/rpc.d.ts",
+      "import": "./dist/rpc.js"
+    },
+    "./tui": {
+      "types": "./dist/tui.d.ts",
+      "import": "./dist/tui.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "prepack": "bun run scripts/prepack.ts",
+    "build": "bun run scripts/build.ts",
+    "check": "bunx biome check . && bunx tsc --noEmit && bun run typecheck:tools && bun run typecheck:tests",
+    "format:check": "bunx biome format .",
+    "lint": "bunx biome lint .",
+    "test": "bun test tests/unit tests/integration tests/smoke",
+    "test:unit": "bun test tests/unit",
+    "test:integration": "bun test tests/integration",
+    "test:smoke": "bun test tests/smoke",
+    "typecheck:tools": "bunx tsc -p tsconfig.tooling.json --noEmit",
+    "typecheck:tests": "bunx tsc -p tsconfig.tests.json --noEmit",
+    "release:check": "bun run check && bun run test && bun run prepack"
+  },
+  "dependencies": {
+    "@opencode/plugin": "2.0.18",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.10",
+    "@opentui/core": "0.5.12",
+    "@opentui/solid": "0.5.12",
+    "@types/bun": "1.4.0",
+    "@types/semver": "^7.7.1",
+    "semver": "^7.7.4",
+    "solid-js": "1.9.14",
+    "typescript": "5.9.3"
+  },
+  "peerDependencies": {
+    "@opentui/core": ">=0.5.12",
+    "@opentui/solid": ">=0.5.12",
+    "solid-js": ">=1.9.0"
+  }
+}
