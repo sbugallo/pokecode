@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Declared `repository`, `homepage`, and `bugs` in `package.json` so npm provenance verification
+  accepts publishes from GitHub Actions.
+
 ## [0.1.0] - 2026-10-17
 
 ### Added
