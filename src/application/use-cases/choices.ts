@@ -104,6 +104,8 @@ export function createChoiceCommands(dependencies: GameCommandDependencies) {
       }
       if (!eligible) return "invalid-choice"
       stores.pokemon.evolve(choice.payload.pokemonId, target.speciesId, target.name)
+      // The evolved species is now owned, so it counts as seen and caught.
+      stores.pokemon.markCaught(trainer.id, target.speciesId)
       const level = stores.commands.pokemon.level(choice.payload.pokemonId)
       if (level !== null) {
         for (const move of movesAtLevel(target.speciesId, level)) {

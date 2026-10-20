@@ -33,7 +33,7 @@ export function createChooseRegionalStarter(
         return "already-selected"
       const id = dependencies.createId()
       stores.commands.pokemon.insertStarter({ id, trainerId: trainer.id, starter })
-      stores.commands.pokemon.markCaught(trainer.id, starter.speciesId)
+      stores.pokemon.markCaught(trainer.id, starter.speciesId)
       const position = stores.commands.pokemon.firstEmptyPartyPosition(trainer.id)
       if (position !== null) stores.commands.pokemon.assignPartyPosition(trainer.id, id, position)
       stores.commands.choices.delete(choice.id)

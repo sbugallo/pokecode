@@ -2,6 +2,7 @@ import { expect, test } from "bun:test"
 import type { UsageInput } from "../../../src/application/contracts/game.js"
 import type { PokemonGender } from "../../../src/domain/pokemon/types.js"
 import { experienceForNextLevel, progressionFor } from "../../../src/domain/progression/catalog.js"
+import { speciesIdSchema } from "../../../src/domain/shared/identifiers.js"
 import { createGameFixture, withGameDatabase } from "../../support/game.js"
 
 const config = {
@@ -324,6 +325,62 @@ test("Galar's Mime Jr. route reaches Galarian Mr. Mime and then Mr. Rime", () =>
     // THEN
     expect(String(first.state.party[0]?.pokemon?.speciesId)).toBe("mr-mime-galar")
     expect(String(second.state.party[0]?.pokemon?.speciesId)).toBe("mr-rime")
+  } finally {
+    fixture.dispose()
+  }
+})
+
+test.each([
+  ["staryu", 40, "starmie"],
+  ["nidorino", 44, "nidoking"],
+] as const)("evolving %s registers %s as seen and caught", (id, level, target) => {
+  // GIVEN
+  const fixture = createGameFixture({ config })
+  try {
+    preparePokemon(fixture, id, level)
+
+    // WHEN
+    const result = fixture.game.recordUsage(usage(`${id}-dex`, 1))
+
+    // THEN
+    expect(result.state.party[0]?.pokemon).toMatchObject({ speciesId: target, level })
+    const dex = fixture.game.dex()
+    expect(dex.pokemon.find((entry) => entry.speciesId === target)?.status).toBe("caught")
+    expect(dex.discoveries).toContainEqual({
+      speciesId: speciesIdSchema.parse(target),
+      status: "caught",
+    })
+    expect(String(fixture.reopen().status().party[0]?.pokemon?.speciesId)).toBe(target)
+  } finally {
+    fixture.dispose()
+  }
+})
+
+test("resolving a branched evolution choice registers the chosen species", () => {
+  // GIVEN
+  const fixture = createGameFixture({ config })
+  try {
+    preparePokemon(fixture, "kirlia", 29)
+
+    // WHEN
+    const queued = fixture.game.recordUsage(
+      usage("kirlia-dex", experienceBetween("kirlia", 29, 30)),
+    )
+    const choice = queued.state.pendingChoices.find((entry) => entry.kind === "evolution")
+    if (choice === undefined) throw new Error("Missing evolution choice")
+    const resolved = fixture.game.resolveEvolutionChoice(choice.id, "gallade")
+
+    // THEN
+    expect(resolved.kind).toBe("resolved")
+    expect(resolved.state.party[0]?.pokemon).toMatchObject({ speciesId: "gallade", level: 30 })
+    const dex = fixture.game.dex()
+    expect(dex.pokemon.find((entry) => entry.speciesId === "gallade")?.status).toBe("caught")
+    expect(dex.discoveries).toContainEqual({
+      speciesId: speciesIdSchema.parse("gallade"),
+      status: "caught",
+    })
+    // The branch not chosen stays undiscovered.
+    expect(dex.pokemon.find((entry) => entry.speciesId === "gardevoir")?.status).toBe("unknown")
   } finally {
     fixture.dispose()
   }

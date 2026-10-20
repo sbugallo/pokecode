@@ -30,7 +30,7 @@ export function createEncounterCommands(dependencies: GameCommandDependencies) {
           ivs: generated.ivs,
           moves: initialMoves(encounter.speciesId, encounter.level),
         })
-        stores.commands.pokemon.markCaught(trainer.id, encounter.speciesId)
+        stores.pokemon.markCaught(trainer.id, encounter.speciesId)
         const position = stores.commands.pokemon.firstEmptyPartyPosition(trainer.id)
         if (position !== null) stores.commands.pokemon.assignPartyPosition(trainer.id, id, position)
       }

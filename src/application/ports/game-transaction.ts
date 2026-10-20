@@ -95,7 +95,6 @@ export type CommandTransactionStores = {
       readonly ivs: readonly [number, number, number, number, number, number]
       readonly moves: readonly Move[]
     }): void
-    markCaught(trainerId: string, speciesId: string): void
     firstEmptyPartyPosition(trainerId: string): number | null
     assignPartyPosition(trainerId: string, pokemonId: string, position: number): void
     replaceMove(pokemonId: string, position: number, move: Move): void
@@ -145,6 +144,8 @@ export type UsageTransactionStores = {
     moves(pokemonId: string): readonly StoredPokemonMove[]
     learnMove(pokemonId: string, position: number, move: Move): void
     markSeen(trainerId: string, speciesId: string): void
+    /** Also sets `seen`: a Pokémon the trainer owns is registered as caught. */
+    markCaught(trainerId: string, speciesId: string): void
   }
   readonly exploration: {
     latestUnlockedLocation(trainerId: string): string | null
@@ -180,7 +181,14 @@ export type ProgressionTransactionStores = {
   >
   readonly pokemon: Pick<
     UsageTransactionStores["pokemon"],
-    "party" | "offPartyWithExperience" | "findOwned" | "setLevel" | "evolve" | "moves" | "learnMove"
+    | "party"
+    | "offPartyWithExperience"
+    | "findOwned"
+    | "setLevel"
+    | "evolve"
+    | "moves"
+    | "learnMove"
+    | "markCaught"
   >
 }
 
