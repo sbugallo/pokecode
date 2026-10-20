@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Evolving a Pokémon now registers the evolved species in the Pokédex as seen and caught, both for
+  automatic level-up evolutions and for branching evolutions resolved through a choice.
+
 ## [0.2.0] - 2026-10-17
 
 ### Fixed
