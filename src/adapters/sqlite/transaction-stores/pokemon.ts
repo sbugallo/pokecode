@@ -105,6 +105,15 @@ export function createPokemonTransactionStore(database: Database): {
           )
           .run(trainerId, speciesId)
       },
+      markCaught: (trainerId, speciesId) => {
+        database
+          .query<void, [string, string]>(
+            `INSERT INTO pokedex_entries (trainer_id, species_id, seen, caught)
+               VALUES (?1, ?2, 1, 1)
+               ON CONFLICT(trainer_id, species_id) DO UPDATE SET seen = 1, caught = 1`,
+          )
+          .run(trainerId, speciesId)
+      },
     },
     commands: {
       rename: (trainerId, pokemonId, name) => {
@@ -222,15 +231,6 @@ export function createPokemonTransactionStore(database: Database): {
             )
             .run(id, index + 1, move.id, move.name)
         }
-      },
-      markCaught: (trainerId, speciesId) => {
-        database
-          .query<void, [string, string]>(
-            `INSERT INTO pokedex_entries (trainer_id, species_id, seen, caught)
-               VALUES (?1, ?2, 1, 1)
-               ON CONFLICT(trainer_id, species_id) DO UPDATE SET seen = 1, caught = 1`,
-          )
-          .run(trainerId, speciesId)
       },
       firstEmptyPartyPosition: (trainerId) =>
         database

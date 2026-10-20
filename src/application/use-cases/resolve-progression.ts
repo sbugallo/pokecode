@@ -97,6 +97,8 @@ function resolvePokemonLevels(
       const target = evolution.targets[0]
       speciesId = target.speciesId
       stores.pokemon.evolve(pokemon.id, target.speciesId, target.name)
+      // The evolved species is now owned, so it counts as seen and caught.
+      stores.pokemon.markCaught(trainerId, target.speciesId)
       for (const move of movesAtLevel(speciesId, level)) {
         learnMove(stores, { trainerId, pokemonId: pokemon.id, move, createdAt, createId })
       }
