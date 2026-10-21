@@ -1,6 +1,15 @@
 import type { Database } from "bun:sqlite"
 import { type GameState, gameStateSchema } from "../../../application/contracts/game.js"
-import { locationsForRegion, regions } from "../../../domain/content/catalog.js"
+import {
+  championIndexForRegion,
+  locationIndexFor,
+  locationsForRegion,
+  regions,
+} from "../../../domain/content/catalog.js"
+import {
+  type LocationUnlockCurve,
+  locationUnlockThreshold,
+} from "../../../domain/exploration/exploration.js"
 import { speciesIdSchema } from "../../../domain/shared/identifiers.js"
 import { type PokemonRow, pokemonFromRow } from "../pokemon-mapper.js"
 
@@ -20,8 +29,8 @@ type PendingEncounterRow = {
 
 export function createSqliteGameStateQuery(
   database: Database,
-): (locationUnlockThreshold: number) => GameState {
-  return (locationUnlockThreshold) => {
+): (unlockCurve: LocationUnlockCurve) => GameState {
+  return (unlockCurve) => {
     const trainer = database
       .query<{ readonly id: string; readonly regionId: string; readonly locationId: string }, []>(
         "SELECT id, current_region_id AS regionId, current_location_id AS locationId FROM trainers LIMIT 1",
@@ -175,6 +184,12 @@ export function createSqliteGameStateQuery(
       )
       .all(trainer.id)
     const progressByRegion = new Map(regionProgress.map((region) => [region.regionId, region]))
+    const locationIndex = locationIndexFor(trainer.regionId, trainer.locationId)
+    const championIndex = championIndexForRegion(trainer.regionId)
+    const unlockThreshold =
+      locationIndex === null || championIndex === null
+        ? unlockCurve.baseTokens
+        : locationUnlockThreshold({ index: locationIndex, championIndex, curve: unlockCurve })
     return gameStateSchema.parse({
       phase: "active",
       message: `Your ${trainer.regionId} adventure begins at ${trainer.locationId}.`,
@@ -209,7 +224,7 @@ export function createSqliteGameStateQuery(
           encounterless: location.encounterless,
         })),
         locationUnlockProgress: progress?.tokenCount ?? 0,
-        locationUnlockThreshold,
+        locationUnlockThreshold: unlockThreshold,
         regionComplete: progressByRegion.get(trainer.regionId)?.completed === 1,
       },
     })

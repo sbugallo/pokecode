@@ -80,10 +80,13 @@ describe("usage transaction atomicity", () => {
     const fixture = createGameFixture({
       config: {
         pauseOnPendingChoice: true,
-        xpTokensPerPoint: 1,
-        encounterMinimumTokens: 100_000,
-        encounterMaximumTokens: 100_000,
-        locationUnlockTokens: 100_000,
+        xpTokensPerPoint: 1_000,
+        encounterMinimumTokens: 100_000_000,
+        encounterMaximumTokens: 100_000_000,
+        locationUnlockTokens: 2_160_000,
+        locationUnlockBaseTokens: 100_000_000,
+        locationUnlockExponent: 1,
+        locationUnlockRegionExponent: 0,
       },
     })
     try {
@@ -95,21 +98,23 @@ describe("usage transaction atomicity", () => {
       )
 
       // WHEN
-      expect(() => fixture.game.recordUsage(usage("retry-after-failure", 20_000))).toThrow(
+      expect(() => fixture.game.recordUsage(usage("retry-after-failure", 20_000_000))).toThrow(
         "failure during usage",
       )
 
       // THEN
       expect(databaseFacts(fixture.databasePath)).toEqual(before)
       dropTrigger(fixture.databasePath, "fail_usage_experience")
-      const retry = fixture.game.recordUsage(usage("retry-after-failure", 20_000))
+      const retry = fixture.game.recordUsage(usage("retry-after-failure", 20_000_000))
       expect(retry.kind).toBe("applied")
       expect(retry.state.party[0]?.pokemon?.level).toBeGreaterThan(5)
       expect(retry.state.pendingChoices.length).toBeGreaterThan(0)
       const committed = databaseFacts(fixture.databasePath)
       expect(committed.receipts).toHaveLength(1)
       expect(committed.moves).not.toEqual(before.moves)
-      expect(fixture.game.recordUsage(usage("retry-after-failure", 20_000)).kind).toBe("duplicate")
+      expect(fixture.game.recordUsage(usage("retry-after-failure", 20_000_000)).kind).toBe(
+        "duplicate",
+      )
       expect(databaseFacts(fixture.databasePath)).toEqual(committed)
     } finally {
       fixture.dispose()
@@ -124,7 +129,10 @@ describe("usage transaction atomicity", () => {
         xpTokensPerPoint: 1_000,
         encounterMinimumTokens: 1,
         encounterMaximumTokens: 1,
-        locationUnlockTokens: 100_000,
+        locationUnlockTokens: 2_160_000,
+        locationUnlockBaseTokens: 100_000,
+        locationUnlockExponent: 1,
+        locationUnlockRegionExponent: 0,
       },
       random: () => 0,
     })
@@ -172,10 +180,13 @@ describe("usage transaction atomicity", () => {
     const fixture = createGameFixture({
       config: {
         pauseOnPendingChoice: true,
-        xpTokensPerPoint: 1_000_000,
+        xpTokensPerPoint: 1_000,
         encounterMinimumTokens: 1,
         encounterMaximumTokens: 1,
-        locationUnlockTokens: 100_000,
+        locationUnlockTokens: 2_160_000,
+        locationUnlockBaseTokens: 100_000,
+        locationUnlockExponent: 1,
+        locationUnlockRegionExponent: 0,
       },
       random: () => 0,
     })

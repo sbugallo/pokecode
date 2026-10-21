@@ -18,10 +18,11 @@ function usage(messageId: string, inputTokens: number): UsageInput {
 test("unattended progress survives restart, drains safely, and respects a later pause", () => {
   const config = gameplayConfigSchema.parse({
     pauseOnPendingChoice: false,
-    xpTokensPerPoint: 10,
-    encounterMinimumTokens: 10,
-    encounterMaximumTokens: 10,
-    locationUnlockTokens: 100,
+    encounterMinimumTokens: 1_000,
+    encounterMaximumTokens: 1_000,
+    locationUnlockBaseTokens: 10_000,
+    locationUnlockExponent: 1,
+    locationUnlockRegionExponent: 0,
   })
   const fixture = createGameFixture({ config, random: () => 0 })
   try {
@@ -43,11 +44,11 @@ test("unattended progress survives restart, drains safely, and respects a later 
         )
     })
 
-    const first = fixture.game.recordUsage(usage("coffee", 35))
+    const first = fixture.game.recordUsage(usage("coffee", 3_500))
     expect(first.kind).toBe("applied")
     expect(first.state.pendingEncounterCount).toBe(3)
     expect(first.state.party[0]?.pokemon?.experience).toBe(3.5)
-    expect(first.state.exploration?.locationUnlockProgress).toBe(35)
+    expect(first.state.exploration?.locationUnlockProgress).toBe(3_500)
     expect(first.state.pendingChoices.filter((choice) => choice.kind === "move")).toHaveLength(1)
     const firstEncounter = first.state.pendingEncounter
     if (firstEncounter === null) throw new Error("Missing queued encounter")
@@ -55,8 +56,10 @@ test("unattended progress survives restart, drains safely, and respects a later 
     const reopened = fixture.reopen().status()
     expect(reopened.pendingEncounter).toEqual(firstEncounter)
     expect(reopened.pendingEncounterCount).toBe(3)
-    expect(fixture.game.recordUsage(usage("coffee", 35)).kind).toBe("duplicate")
-    expect(fixture.game.recordUsage(usage("second-coffee", 5)).state.pendingEncounterCount).toBe(4)
+    expect(fixture.game.recordUsage(usage("coffee", 3_500)).kind).toBe("duplicate")
+    expect(fixture.game.recordUsage(usage("second-coffee", 500)).state.pendingEncounterCount).toBe(
+      4,
+    )
 
     expect(fixture.game.resolveMoveChoice(choiceId, "razor-leaf").kind).toBe("resolved")
     expect(fixture.game.catchEncounter(firstEncounter.id).kind).toBe("caught")
@@ -67,11 +70,11 @@ test("unattended progress survives restart, drains safely, and respects a later 
 
     config.pauseOnPendingChoice = true
     fixture.reopen()
-    const paused = fixture.game.recordUsage(usage("paused", 1_000))
+    const paused = fixture.game.recordUsage(usage("paused", 100_000))
     expect(paused.kind).toBe("frozen-discarded")
     expect(paused.state.pendingEncounterCount).toBe(3)
     expect(paused.state.party[0]?.pokemon?.experience).toBe(4)
-    expect(paused.state.exploration?.locationUnlockProgress).toBe(40)
+    expect(paused.state.exploration?.locationUnlockProgress).toBe(4_000)
 
     for (let count = 3; count > 0; count -= 1) {
       const head = fixture.game.status().pendingEncounter
@@ -79,8 +82,8 @@ test("unattended progress survives restart, drains safely, and respects a later 
       expect(fixture.game.runEncounter(head.id).state.pendingEncounterCount).toBe(count - 1)
     }
     expect(fixture.game.status().pendingChoices).toHaveLength(0)
-    expect(fixture.game.recordUsage(usage("paused", 1_000)).kind).toBe("duplicate")
-    expect(fixture.game.recordUsage(usage("resumed", 5)).kind).toBe("applied")
+    expect(fixture.game.recordUsage(usage("paused", 100_000)).kind).toBe("duplicate")
+    expect(fixture.game.recordUsage(usage("resumed", 500)).kind).toBe("applied")
     expect(fixture.game.status().party[0]?.pokemon?.experience).toBe(4.5)
   } finally {
     fixture.dispose()
@@ -91,10 +94,11 @@ test("a failure on a later encounter rolls back the entire multi-encounter recei
   const fixture = createGameFixture({
     config: gameplayConfigSchema.parse({
       pauseOnPendingChoice: false,
-      xpTokensPerPoint: 10,
-      encounterMinimumTokens: 10,
-      encounterMaximumTokens: 10,
-      locationUnlockTokens: 100,
+      encounterMinimumTokens: 1_000,
+      encounterMaximumTokens: 1_000,
+      locationUnlockBaseTokens: 10_000,
+      locationUnlockExponent: 1,
+      locationUnlockRegionExponent: 0,
     }),
     random: () => 0,
   })
@@ -109,7 +113,7 @@ test("a failure on a later encounter rolls back the entire multi-encounter recei
       `)
     })
     const before = fixture.game.status()
-    expect(() => fixture.game.recordUsage(usage("atomic-coffee", 35))).toThrow(
+    expect(() => fixture.game.recordUsage(usage("atomic-coffee", 3_500))).toThrow(
       "second encounter failed",
     )
     expect(fixture.game.status()).toEqual(before)
@@ -120,12 +124,12 @@ test("a failure on a later encounter rolls back the entire multi-encounter recei
       expect(database.query("SELECT * FROM pending_choices").all()).toHaveLength(0)
       database.run("DROP TRIGGER fail_second_encounter")
     })
-    const retry = fixture.game.recordUsage(usage("atomic-coffee", 35))
+    const retry = fixture.game.recordUsage(usage("atomic-coffee", 3_500))
     expect(retry.kind).toBe("applied")
     expect(retry.state.pendingEncounterCount).toBe(3)
     expect(retry.state.party[0]?.pokemon?.experience).toBe(3.5)
-    expect(retry.state.exploration?.locationUnlockProgress).toBe(35)
-    expect(fixture.game.recordUsage(usage("atomic-coffee", 35)).kind).toBe("duplicate")
+    expect(retry.state.exploration?.locationUnlockProgress).toBe(3_500)
+    expect(fixture.game.recordUsage(usage("atomic-coffee", 3_500)).kind).toBe("duplicate")
     expect(fixture.reopen().status().pendingEncounterCount).toBe(3)
   } finally {
     fixture.dispose()
@@ -136,7 +140,6 @@ test("a substantial backlog has one encounter projection and survives travel wit
   const fixture = createGameFixture({
     config: gameplayConfigSchema.parse({
       pauseOnPendingChoice: false,
-      xpTokensPerPoint: 1_000_000,
       encounterMinimumTokens: 1,
       encounterMaximumTokens: 1,
     }),

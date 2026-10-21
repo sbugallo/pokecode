@@ -5,6 +5,7 @@ export const kantoLocationsCatalog = {
     "squirtle"
   ],
   "specialEncounters": [],
+  "championLocationId": "indigo-plateau",
   "locations": [
     {
       "id": "pallet-town",

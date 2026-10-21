@@ -5,10 +5,13 @@ import { createGameFixture, withGameDatabase } from "../../support/game.js"
 
 const quietEncounterConfig = {
   pauseOnPendingChoice: true,
-  xpTokensPerPoint: 10,
+  xpTokensPerPoint: 1_000,
   encounterMinimumTokens: 100_000,
   encounterMaximumTokens: 100_000,
-  locationUnlockTokens: 10,
+  locationUnlockTokens: 2_160_000,
+  locationUnlockBaseTokens: 10,
+  locationUnlockExponent: 1,
+  locationUnlockRegionExponent: 0,
 }
 
 function usage(messageId: string, tokens: number): UsageInput {
@@ -55,7 +58,7 @@ test("location progress unlocks one location at a time and only at the current l
 test("region completion stays pending until a new region is unlocked", () => {
   // GIVEN
   const fixture = createGameFixture({
-    config: { ...quietEncounterConfig, locationUnlockTokens: 1 },
+    config: { ...quietEncounterConfig, locationUnlockBaseTokens: 1 },
   })
   const locations = locationsForRegion("kanto")
 

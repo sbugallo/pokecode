@@ -14,10 +14,13 @@ test("captured and exact-form discoveries survive the declared RPC output bounda
   const fixture = createGameFixture({
     config: {
       pauseOnPendingChoice: true,
-      xpTokensPerPoint: 10,
-      locationUnlockTokens: 100_000,
+      xpTokensPerPoint: 1_000,
+      locationUnlockBaseTokens: 100_000,
+      locationUnlockExponent: 1,
+      locationUnlockRegionExponent: 0,
       encounterMinimumTokens: 1,
       encounterMaximumTokens: 1,
+      locationUnlockTokens: 2_160_000,
     },
     random: () => 0,
   })

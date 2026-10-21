@@ -30,6 +30,7 @@ export const unovaLocationsCatalog = {
       "maximumLevel": 15
     }
   ],
+  "championLocationId": "unova-pokemon-league",
   "locations": [
     {
       "id": "nuvema-town",

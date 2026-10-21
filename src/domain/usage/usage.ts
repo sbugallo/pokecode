@@ -16,11 +16,11 @@ export function totalTokens(input: TokenUsage): number {
   )
 }
 
-export function experienceFromTokens(
-  tokenCount: number,
-  config: { readonly xpTokensPerPoint: number },
-): number {
-  return tokenCount / config.xpTokensPerPoint
+/** Fixed rate the unlock curve was calibrated against: 1000 tokens = 1 XP. */
+export const tokensPerExperiencePoint = 1_000
+
+export function experienceFromTokens(tokenCount: number): number {
+  return tokenCount / tokensPerExperiencePoint
 }
 
 export function usageReceiptKey(input: {

@@ -5,6 +5,7 @@ export const paldeaLocationsCatalog = {
     "quaxly"
   ],
   "specialEncounters": [],
+  "championLocationId": "paldea-pokemon-league",
   "locations": [
     {
       "id": "cabo-poco",
