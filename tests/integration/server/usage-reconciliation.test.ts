@@ -81,8 +81,8 @@ describe("server usage reconciliation", () => {
       expect(callbackCount).toBe(1)
       expect(observed).toEqual({
         receipts: 1,
-        committedExperience: 1,
-        projectedExperience: 1,
+        committedExperience: 0.01,
+        projectedExperience: 0.01,
       })
     } finally {
       fixture.dispose()

@@ -56,7 +56,12 @@ export type GameServiceDependencies = {
 
 export function createApplicationGame(dependencies: GameServiceDependencies): GameService {
   const { repository, random, now, config, createId, createStarterIds } = dependencies
-  const readState = () => repository.readState(config.locationUnlockTokens)
+  const readState = () =>
+    repository.readState({
+      baseTokens: config.locationUnlockBaseTokens,
+      exponent: config.locationUnlockExponent,
+      regionExponent: config.locationUnlockRegionExponent,
+    })
   const commands = createGameCommands({
     transactions: repository.transactions,
     readState,

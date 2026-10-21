@@ -12,6 +12,7 @@ export const hoennLocationsCatalog = {
       "maximumLevel": 5
     }
   ],
+  "championLocationId": "ever-grande-city",
   "locations": [
     {
       "id": "littleroot-town",

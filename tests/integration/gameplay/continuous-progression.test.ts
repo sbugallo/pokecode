@@ -1,21 +1,25 @@
 import { expect, test } from "bun:test"
 import type { GameplayConfig, UsageInput } from "../../../src/application/contracts/game.js"
 import { experienceForNextLevel, progressionFor } from "../../../src/domain/progression/catalog.js"
+import { tokensPerExperiencePoint } from "../../../src/domain/usage/usage.js"
 import { createGameFixture, withGameDatabase } from "../../support/game.js"
 
 const continuousConfig: GameplayConfig = {
   pauseOnPendingChoice: false,
-  xpTokensPerPoint: 1,
+  xpTokensPerPoint: 1_000,
   encounterMinimumTokens: 10,
   encounterMaximumTokens: 10,
-  locationUnlockTokens: 100_000,
+  locationUnlockTokens: 2_160_000,
+  locationUnlockBaseTokens: 100_000_000,
+  locationUnlockExponent: 1,
+  locationUnlockRegionExponent: 0,
 }
 
 const pausedProgressionConfig: GameplayConfig = {
   ...continuousConfig,
   pauseOnPendingChoice: true,
-  encounterMinimumTokens: 100_000,
-  encounterMaximumTokens: 100_000,
+  encounterMinimumTokens: 100_000_000,
+  encounterMaximumTokens: 100_000_000,
 }
 
 function usage(messageId: string, inputTokens: number): UsageInput {
@@ -31,12 +35,12 @@ function usage(messageId: string, inputTokens: number): UsageInput {
   }
 }
 
-function experienceBetween(speciesId: string, from: number, to: number): number {
+function tokensForExperienceBetween(speciesId: string, from: number, to: number): number {
   let total = 0
   for (let level = from; level < to; level += 1) {
     total += experienceForNextLevel(progressionFor(speciesId).growthRate, level)
   }
-  return total
+  return total * tokensPerExperiencePoint
 }
 
 function queuePausedEeveeBranch(fixture: ReturnType<typeof createGameFixture>): {
@@ -54,7 +58,7 @@ function queuePausedEeveeBranch(fixture: ReturnType<typeof createGameFixture>): 
     database.query<void, [string]>("DELETE FROM pokemon_moves WHERE pokemon_id = ?1").run(pokemonId)
   })
   const queued = fixture.game.recordUsage(
-    usage("paused-eevee-branch", experienceBetween("eevee", 24, 27)),
+    usage("paused-eevee-branch", tokensForExperienceBetween("eevee", 24, 27)),
   )
   const branch = queued.state.pendingChoices.find((choice) => choice.kind === "evolution")
   if (branch === undefined) throw new Error("Expected a pending Eevee branch")
@@ -264,8 +268,8 @@ test("branching evolution defers only its Pokémon and resumes saved XP despite 
   const fixture = createGameFixture({
     config: {
       ...continuousConfig,
-      encounterMinimumTokens: 100_000,
-      encounterMaximumTokens: 100_000,
+      encounterMinimumTokens: 100_000_000,
+      encounterMaximumTokens: 100_000_000,
     },
   })
   try {
@@ -285,12 +289,12 @@ test("branching evolution defers only its Pokémon and resumes saved XP despite 
         .run("00000000-0000-4000-8000-000000000090")
     })
 
-    const branchXP = experienceBetween("eevee", 24, 25)
-    const queued = fixture.game.recordUsage(usage("reach-eevee-branch", branchXP))
+    const branchTokens = tokensForExperienceBetween("eevee", 24, 25)
+    const queued = fixture.game.recordUsage(usage("reach-eevee-branch", branchTokens))
     const branch = queued.state.pendingChoices.find((choice) => choice.kind === "evolution")
     if (branch === undefined) throw new Error("Expected an Eevee evolution choice")
     const accrued = fixture.game.recordUsage(
-      usage("earn-behind-branch", experienceBetween("eevee", 25, 27)),
+      usage("earn-behind-branch", tokensForExperienceBetween("eevee", 25, 27)),
     )
     const evolutionCount = accrued.state.pendingChoices.filter(
       (choice) => choice.kind === "evolution",
@@ -483,15 +487,19 @@ test("duplicate queued move prompts are suppressed and stale known-move prompts 
   const fixture = createGameFixture({
     config: {
       ...continuousConfig,
-      encounterMinimumTokens: 100_000,
-      encounterMaximumTokens: 100_000,
+      encounterMinimumTokens: 100_000_000,
+      encounterMaximumTokens: 100_000_000,
     },
   })
   try {
-    fixture.game.recordUsage(usage("ivysaur-level-16", experienceBetween("bulbasaur", 5, 16)))
+    fixture.game.recordUsage(
+      usage("ivysaur-level-16", tokensForExperienceBetween("bulbasaur", 5, 16)),
+    )
     const pokemonId = fixture.game.status().party[0]?.pokemon?.id
     if (pokemonId === undefined) throw new Error("Expected starter")
-    fixture.game.recordUsage(usage("ivysaur-level-22", experienceBetween("ivysaur", 16, 22)))
+    fixture.game.recordUsage(
+      usage("ivysaur-level-22", tokensForExperienceBetween("ivysaur", 16, 22)),
+    )
     const prompt = fixture.game
       .status()
       .pendingChoices.find(
@@ -506,7 +514,7 @@ test("duplicate queued move prompts are suppressed and stale known-move prompts 
         .run(pokemonId)
     })
     const retried = fixture.game.recordUsage(
-      usage("revisit-razor-leaf-milestone", experienceBetween("ivysaur", 21, 22)),
+      usage("revisit-razor-leaf-milestone", tokensForExperienceBetween("ivysaur", 21, 22)),
     )
     expect(
       retried.state.pendingChoices.filter(

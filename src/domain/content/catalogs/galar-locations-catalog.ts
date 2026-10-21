@@ -30,6 +30,7 @@ export const galarLocationsCatalog = {
       "maximumLevel": 70
     }
   ],
+  "championLocationId": "energy-plant",
   "locations": [
     {
       "id": "postwick",

@@ -44,6 +44,8 @@ const regionSchema = namedIdSchema.extend({
   locations: z.array(locationSchema).min(1),
   starterSpeciesIds: z.array(z.string().min(1)).length(3),
   starterCatchLocationId: z.string().min(1),
+  /** Location whose index anchors the region's story end for unlock pacing. */
+  championLocationId: z.string().min(1),
   specials: z.array(specialSchema),
 })
 

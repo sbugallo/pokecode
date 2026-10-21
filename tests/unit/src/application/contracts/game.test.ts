@@ -15,6 +15,8 @@ test("gameplay configuration defaults and positive-integer constraints stay stab
     { encounterMinimumTokens: 1.5 },
     { encounterMaximumTokens: -1 },
     { locationUnlockTokens: 0 },
+    { locationUnlockBaseTokens: 0 },
+    { locationUnlockExponent: 0 },
     { pauseOnPendingChoice: 0 },
     { pauseOnPendingChoice: null },
   ]
@@ -26,6 +28,9 @@ test("gameplay configuration defaults and positive-integer constraints stay stab
     encounterMinimumTokens: 200_000,
     encounterMaximumTokens: 400_000,
     locationUnlockTokens: 2_160_000,
+    locationUnlockBaseTokens: 4_214_000,
+    locationUnlockExponent: 2.64,
+    locationUnlockRegionExponent: -1.72,
   })
   for (const config of invalidConfigurations)
     expect(gameplayConfigSchema.safeParse(config).success).toBe(false)

@@ -10,20 +10,20 @@ describe("usage rules", () => {
   test("totals every token category and preserves fractional experience", () => {
     // GIVEN
     const usage = {
-      inputTokens: 10,
-      outputTokens: 20,
-      reasoningTokens: 30,
-      cacheReadTokens: 40,
-      cacheWriteTokens: 50,
+      inputTokens: 10_000,
+      outputTokens: 20_000,
+      reasoningTokens: 30_000,
+      cacheReadTokens: 40_000,
+      cacheWriteTokens: 50_000,
     }
 
     // WHEN
     const tokens = totalTokens(usage)
-    const experience = experienceFromTokens(tokens, { xpTokensPerPoint: 100 })
+    const experience = experienceFromTokens(tokens)
 
     // THEN
-    expect(tokens).toBe(150)
-    expect(experience).toBe(1.5)
+    expect(tokens).toBe(150_000)
+    expect(experience).toBe(150)
   })
 
   test("identifies a receipt by both session and message", () => {

@@ -1,4 +1,6 @@
 import {
+  championIndexForRegion,
+  locationIndexFor,
   nextLocation,
   ordinaryEncountersForLocation,
   regions,
@@ -12,7 +14,10 @@ import {
   selectSpecialEncounter,
   selectWeightedEncounter,
 } from "../../domain/encounters/encounter.js"
-import { calculateUnlockProgress } from "../../domain/exploration/exploration.js"
+import {
+  calculateUnlockProgress,
+  locationUnlockThreshold,
+} from "../../domain/exploration/exploration.js"
 import {
   experienceFromTokens,
   receiptDisposition,
@@ -52,7 +57,7 @@ export function createRecordUsage(dependencies: RecordUsageDependencies) {
       if (disposition !== "applied") return disposition
       if (trainer === null) return "inactive" as const
 
-      stores.pokemon.addPartyExperience(trainer.id, experienceFromTokens(tokenCount, config))
+      stores.pokemon.addPartyExperience(trainer.id, experienceFromTokens(tokenCount))
       resolveUsageLevels(
         stores,
         trainer.id,
@@ -97,10 +102,24 @@ function advanceLocationUnlock(
   if (latestLocationId !== trainer.locationId) return
   const currentTokens = stores.exploration.unlockTokenCount(trainer.id)
   const next = nextLocation(trainer.regionId, trainer.locationId)
+  const index = locationIndexFor(trainer.regionId, trainer.locationId)
+  const championIndex = championIndexForRegion(trainer.regionId)
+  const threshold =
+    index === null || championIndex === null
+      ? config.locationUnlockBaseTokens
+      : locationUnlockThreshold({
+          index,
+          championIndex,
+          curve: {
+            baseTokens: config.locationUnlockBaseTokens,
+            exponent: config.locationUnlockExponent,
+            regionExponent: config.locationUnlockRegionExponent,
+          },
+        })
   const result = calculateUnlockProgress({
     currentTokens,
     gainedTokens: tokenCount,
-    threshold: config.locationUnlockTokens,
+    threshold,
     hasNextLocation: next !== null,
     currentLocationIsLatestUnlocked: true,
   })

@@ -1,14 +1,18 @@
 import { expect, test } from "bun:test"
 import type { UsageInput } from "../../../src/application/contracts/game.js"
 import { experienceForNextLevel, progressionFor } from "../../../src/domain/progression/catalog.js"
+import { tokensPerExperiencePoint } from "../../../src/domain/usage/usage.js"
 import { createGameFixture, withGameDatabase as withDatabase } from "../../support/game.js"
 
 const config = {
   pauseOnPendingChoice: true,
-  xpTokensPerPoint: 1,
-  encounterMinimumTokens: 100_000,
-  encounterMaximumTokens: 100_000,
-  locationUnlockTokens: 100_000,
+  xpTokensPerPoint: 1_000,
+  encounterMinimumTokens: 1_000_000_000,
+  encounterMaximumTokens: 1_000_000_000,
+  locationUnlockTokens: 2_160_000,
+  locationUnlockBaseTokens: 1_000_000_000,
+  locationUnlockExponent: 1,
+  locationUnlockRegionExponent: 0,
 }
 
 function usage(messageId: string, tokenCount: number): UsageInput {
@@ -24,12 +28,16 @@ function usage(messageId: string, tokenCount: number): UsageInput {
   }
 }
 
-function experienceBetween(speciesId: string, startLevel: number, finalLevel: number): number {
+function tokensForExperienceBetween(
+  speciesId: string,
+  startLevel: number,
+  finalLevel: number,
+): number {
   let amount = 0
   for (let level = startLevel; level < finalLevel; level += 1) {
     amount += experienceForNextLevel(progressionFor(speciesId).growthRate, level)
   }
-  return amount
+  return amount * tokensPerExperiencePoint
 }
 
 test("multi-level progression applies evolution and learns each eligible move", () => {
@@ -39,7 +47,7 @@ test("multi-level progression applies evolution and learns each eligible move", 
   try {
     // WHEN
     const result = fixture.game.recordUsage(
-      usage("reach-level-sixteen", experienceBetween("bulbasaur", 5, 16)),
+      usage("reach-level-sixteen", tokensForExperienceBetween("bulbasaur", 5, 16)),
     )
 
     // THEN
@@ -66,11 +74,11 @@ test("a full move set can decline the offered move without changing known moves"
   const fixture = createGameFixture({ config })
 
   try {
-    fixture.game.recordUsage(usage("reach-sixteen", experienceBetween("bulbasaur", 5, 16)))
+    fixture.game.recordUsage(usage("reach-sixteen", tokensForExperienceBetween("bulbasaur", 5, 16)))
 
     // WHEN
     const learned = fixture.game.recordUsage(
-      usage("reach-twenty-two", experienceBetween("ivysaur", 16, 22)),
+      usage("reach-twenty-two", tokensForExperienceBetween("ivysaur", 16, 22)),
     )
     const choice = learned.state.pendingChoices.find((pending) => pending.kind === "move")
     if (choice === undefined) throw new Error("Expected a move choice")
@@ -93,9 +101,9 @@ test("choosing a known move replaces that slot with the newly learned move", () 
   const fixture = createGameFixture({ config })
 
   try {
-    fixture.game.recordUsage(usage("reach-sixteen", experienceBetween("bulbasaur", 5, 16)))
+    fixture.game.recordUsage(usage("reach-sixteen", tokensForExperienceBetween("bulbasaur", 5, 16)))
     const learned = fixture.game.recordUsage(
-      usage("reach-twenty-two", experienceBetween("ivysaur", 16, 22)),
+      usage("reach-twenty-two", tokensForExperienceBetween("ivysaur", 16, 22)),
     )
     const choice = learned.state.pendingChoices.find((pending) => pending.kind === "move")
     if (choice === undefined) throw new Error("Expected a move choice")
@@ -134,7 +142,7 @@ test("a level-triggered Eevee evolution choice survives reopening and resolves d
 
     // WHEN
     const queued = fixture.game.recordUsage(
-      usage("eevee-evolution", experienceBetween("eevee", 24, 25)),
+      usage("eevee-evolution", tokensForExperienceBetween("eevee", 24, 25)),
     )
     const evolutionChoice = queued.state.pendingChoices.find(
       (choice) => choice.kind === "evolution",

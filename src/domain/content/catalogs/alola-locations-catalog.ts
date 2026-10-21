@@ -20,6 +20,7 @@ export const alolaLocationsCatalog = {
       maximumLevel: 50,
     },
   ],
+  championLocationId: "alola-pokemon-league",
   locations: [
     {
       id: "iki-town",

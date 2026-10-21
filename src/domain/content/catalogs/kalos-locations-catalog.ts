@@ -24,6 +24,7 @@ export const kalosLocationsCatalog = {
       "maximumLevel": 70
     }
   ],
+  "championLocationId": "kalos-pokemon-league",
   "locations": [
     {
       "id": "vaniville-town",

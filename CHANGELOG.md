@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Replaced the flat location-unlock cost with a region-normalized curve fitted to gym-leader and
+  champion ace levels, capped at the champion approach for postgame and DLC locations. Champion
+  locations are stored in the regional catalogs, and XP remains fixed at 1 point per 1,000 tokens.
+  The old XP-conversion and flat unlock-cost options remain parseable but are deprecated and ignored.
+
 ## [0.2.1] - 2026-10-20
 
 ### Fixed
@@ -40,4 +47,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   active-team export in Pokémon Showdown format.
 - `npx @sbugallo/pokecode init` installer that registers the server and TUI plugin entrypoints, and
   English and Spanish localization.
-

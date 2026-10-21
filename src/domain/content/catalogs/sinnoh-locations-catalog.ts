@@ -12,6 +12,7 @@ export const sinnohLocationsCatalog = {
       "maximumLevel": 50
     }
   ],
+  "championLocationId": "victory-road",
   "locations": [
     {
       "id": "twinleaf-town",

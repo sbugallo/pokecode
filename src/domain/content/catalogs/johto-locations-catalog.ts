@@ -24,6 +24,7 @@ export const johtoLocationsCatalog = {
       "maximumLevel": 40
     }
   ],
+  "championLocationId": "johto-indigo-plateau",
   "locations": [
     {
       "id": "new-bark-town",

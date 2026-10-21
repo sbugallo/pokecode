@@ -20,11 +20,11 @@ function usage(
   return {
     sessionId: overrides.sessionId ?? "usage-session",
     messageId,
-    inputTokens: overrides.inputTokens ?? 3,
-    outputTokens: overrides.outputTokens ?? 4,
-    reasoningTokens: overrides.reasoningTokens ?? 2,
-    cacheReadTokens: overrides.cacheReadTokens ?? 5,
-    cacheWriteTokens: overrides.cacheWriteTokens ?? 1,
+    inputTokens: overrides.inputTokens ?? 300,
+    outputTokens: overrides.outputTokens ?? 400,
+    reasoningTokens: overrides.reasoningTokens ?? 200,
+    cacheReadTokens: overrides.cacheReadTokens ?? 500,
+    cacheWriteTokens: overrides.cacheWriteTokens ?? 100,
     completedAt,
   }
 }
@@ -33,7 +33,7 @@ describe("usage accounting gameplay", () => {
   test("applies the total of every token category to experience and exploration", () => {
     // GIVEN
     const fixture = createGameFixture({
-      config: { ...usageTestConfig, locationUnlockTokens: 1_000 },
+      config: { ...usageTestConfig, locationUnlockBaseTokens: 10_000 },
     })
     try {
       // WHEN
@@ -42,7 +42,7 @@ describe("usage accounting gameplay", () => {
       // THEN
       expect(application.kind).toBe("applied")
       expect(application.state.party[0]?.pokemon?.experience).toBe(1.5)
-      expect(application.state.exploration?.locationUnlockProgress).toBe(15)
+      expect(application.state.exploration?.locationUnlockProgress).toBe(1_500)
       const database = new Database(fixture.databasePath)
       try {
         expect(
@@ -51,7 +51,7 @@ describe("usage accounting gameplay", () => {
               "SELECT token_count AS tokenCount FROM token_receipts WHERE session_id = 'usage-session' AND message_id = 'all-token-categories'",
             )
             .get()?.tokenCount,
-        ).toBe(15)
+        ).toBe(1_500)
       } finally {
         database.close()
       }
@@ -80,7 +80,7 @@ describe("usage accounting gameplay", () => {
         peer.close()
       }
       const duplicate = fixture.game.recordUsage(
-        usage("same-message", { inputTokens: 300, sessionId: "usage-session" }),
+        usage("same-message", { inputTokens: 30_000, sessionId: "usage-session" }),
       )
       const independentSession = fixture.game.recordUsage(
         usage("same-message", { sessionId: "another-session" }),
@@ -231,10 +231,13 @@ describe("usage accounting gameplay", () => {
     const fixture = createGameFixture({
       config: {
         pauseOnPendingChoice: true,
-        xpTokensPerPoint: 1,
+        xpTokensPerPoint: 1_000,
         encounterMinimumTokens: 1,
         encounterMaximumTokens: 1,
-        locationUnlockTokens: 1,
+        locationUnlockTokens: 2_160_000,
+        locationUnlockBaseTokens: 1,
+        locationUnlockExponent: 1,
+        locationUnlockRegionExponent: 0,
       },
       random: () => 0,
     })
@@ -253,7 +256,7 @@ describe("usage accounting gameplay", () => {
       // WHEN
       const result = fixture.game.recordUsage({
         ...usage("choice-and-continuation", {
-          inputTokens: 2_000,
+          inputTokens: 2_000_000,
           outputTokens: 0,
           reasoningTokens: 0,
           cacheReadTokens: 0,

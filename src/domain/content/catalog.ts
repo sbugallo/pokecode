@@ -48,6 +48,7 @@ type RegionalLocationSource = {
 
 type RegionalCatalogSource = {
   readonly starterPokemons: readonly string[]
+  readonly championLocationId: string
   readonly locations: readonly RegionalLocationSource[]
   readonly specialEncounters?: readonly CatalogSpecialSource[]
 }
@@ -112,6 +113,7 @@ const catalog = generatedCatalogSchema.parse({
       localization: region.localization,
       starterSpeciesIds: regionalCatalog.starterPokemons,
       starterCatchLocationId: locations[0]?.id ?? "",
+      championLocationId: regionalCatalog.championLocationId,
       specials: specialsForCatalog(regionalCatalog).flatMap((special) => {
         const pokemon = pokemonById.get(special.id)
         const ability = englishAbilityName(pokemon?.abilities[0])
@@ -171,6 +173,17 @@ const catalog = generatedCatalogSchema.parse({
   ),
 })
 export const generatedContentCatalog = catalog
+// The unlock-pacing curve is anchored on each region's champion location, so a
+// bad id would silently distort progression: fail fast at load instead.
+const championIndexByRegion = new Map<string, number>(
+  catalog.regions.map((region) => {
+    const index = region.locations.findIndex(
+      (location) => location.id === region.championLocationId,
+    )
+    if (index < 0) throw new Error(`Unknown championLocationId ${region.championLocationId}`)
+    return [region.id, index]
+  }),
+)
 const regionsById = new Map(catalog.regions.map((region) => [region.id, region]))
 const speciesById = new Map(
   [...catalog.species, ...catalog.regionalForms].map((species) => [species.id, species]),
@@ -307,6 +320,16 @@ export function nextLocation(regionId: string, locationId: string): CatalogLocat
   const locations = locationsForRegion(regionId)
   const index = locations.findIndex((location) => location.id === locationId)
   return index < 0 ? null : (locations[index + 1] ?? null)
+}
+
+/** Index of the region's champion location; anchors the unlock-pacing curve. */
+export function championIndexForRegion(regionId: string): number | null {
+  return championIndexByRegion.get(regionId) ?? null
+}
+
+export function locationIndexFor(regionId: string, locationId: string): number | null {
+  const index = locationsForRegion(regionId).findIndex((location) => location.id === locationId)
+  return index < 0 ? null : index
 }
 
 export function startersForRegion(

@@ -12,6 +12,7 @@ import type {
   StarterCreationCommand,
   StarterIdGenerator,
 } from "../../application/ports/starter-selection-store.js"
+import type { LocationUnlockCurve } from "../../domain/exploration/exploration.js"
 import { createSqliteGameTransactionRunner } from "./game-transaction.js"
 import { initializeSqliteDatabase } from "./initialize-database.js"
 import { createSqliteCollectionQueries, trainerIdForQueries } from "./queries/collection.js"
@@ -26,7 +27,7 @@ const environmentKeys = {
 
 export type GameRepository = {
   readonly transactions: GameTransactionRunner
-  readState(locationUnlockThreshold?: number): GameState
+  readState(unlockCurve?: LocationUnlockCurve): GameState
   createStarterAtomically(selection: StarterCreationCommand, createIds: StarterIdGenerator): boolean
   collection(): PokemonCollection
   dex(): PokemonDex
@@ -50,9 +51,15 @@ export function openGameRepository(path = globalDatabasePath()): GameRepository 
   })
 
   const queryState = createSqliteGameStateQuery(database)
-  const readState = (
-    locationUnlockThreshold = gameplayConfigSchema.parse({}).locationUnlockTokens,
-  ): GameState => queryState(locationUnlockThreshold)
+  const defaultUnlockCurve = (): LocationUnlockCurve => {
+    const config = gameplayConfigSchema.parse({})
+    return {
+      baseTokens: config.locationUnlockBaseTokens,
+      exponent: config.locationUnlockExponent,
+      regionExponent: config.locationUnlockRegionExponent,
+    }
+  }
+  const readState = (unlockCurve = defaultUnlockCurve()): GameState => queryState(unlockCurve)
 
   const starterSelectionStore = createSqliteStarterSelectionStore(database, readState)
   const collectionQueries = createSqliteCollectionQueries(database)
