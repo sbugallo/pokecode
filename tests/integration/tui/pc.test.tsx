@@ -1,5 +1,4 @@
 import { describe, expect } from "bun:test"
-import { RGBA } from "@opentui/core"
 import { stringWidth } from "bun"
 import { createSignal } from "solid-js"
 import { PcDetails } from "../../../src/adapters/opencode/tui/pc/details.js"
@@ -7,7 +6,13 @@ import { PokemonPcDialog } from "../../../src/adapters/opencode/tui/pc/dialog.js
 import { pcCopy } from "../../../src/adapters/presentation/pc-copy.js"
 import type { PokemonManagementResult } from "../../../src/application/contracts/game.js"
 import { pokemonInstanceSchema } from "../../../src/domain/pokemon/model.js"
-import { renderTui, testTui, testTuiEach } from "../../support/tui.js"
+import {
+  makePokecodeSurface,
+  makePokecodeTheme,
+  renderTui,
+  testTui,
+  testTuiEach,
+} from "../../support/tui.js"
 
 const collection = Array.from({ length: 8 }, (_, index) =>
   pokemonInstanceSchema.parse({
@@ -45,8 +50,7 @@ async function renderPc(
           pokemon={options.pokemon?.() ?? collection}
           partyIds={options.partyIds ?? collection.slice(0, 1).map((pokemon) => pokemon.id)}
           language="en"
-          textColor="#ffffff"
-          mutedColor="#808080"
+          theme={() => makePokecodeTheme()}
           onClose={options.onClose ?? (() => {})}
           onConfirm={options.onConfirm ?? (async () => true)}
           onRename={options.onRename ?? (async () => "renamed")}
@@ -213,12 +217,13 @@ describe("Pokémon PC dialog", () => {
     async (language) => {
       // GIVEN
       const [nature, setNature] = createSignal("Hardy")
+      const surface = makePokecodeSurface()
       const rendered = await renderTui(
         () => (
           <PcDetails
             pokemon={pokemonInstanceSchema.parse({ ...collection[0], nature: nature() })}
             language={language}
-            textColor="#d1d5db"
+            theme={() => surface}
             resolveSprite={async () => ({ kind: "placeholder" })}
             imageProtocol={() => "auto"}
           />
@@ -255,11 +260,7 @@ describe("Pokémon PC dialog", () => {
         for (const [index, row] of statRows.entries()) {
           expect(row).toBeDefined()
           expect(row?.fg).toEqual(
-            index === increased
-              ? RGBA.fromHex("#ef4444")
-              : index === decreased
-                ? RGBA.fromHex("#3b82f6")
-                : RGBA.fromHex("#d1d5db"),
+            index === increased ? surface.error : index === decreased ? surface.info : surface.text,
           )
           expect(row?.text.trim()).toMatch(/\s+\d+\s+0\s+\d+$/)
           const indicator = index === increased ? "↑" : index === decreased ? "↓" : " "
@@ -530,7 +531,6 @@ describe("Pokémon PC dialog", () => {
           <PcDetails
             pokemon={pokemon}
             language={language}
-            textColor="#d1d5db"
             resolveSprite={async () => ({ kind: "placeholder" })}
             imageProtocol={() => "auto"}
           />

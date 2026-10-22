@@ -4,7 +4,7 @@ import {
   createPcAction,
 } from "../../../src/adapters/opencode/tui/pc/actions.js"
 import { createTuiStateCoordinator } from "../../../src/adapters/opencode/tui/state/coordinator.js"
-import { deferred, makeTuiClient, makeTuiState } from "../../support/tui.js"
+import { deferred, makePokecodeTheme, makeTuiClient, makeTuiState } from "../../support/tui.js"
 
 describe("PC actions", () => {
   test("opens the PC in a large centered modal", async () => {
@@ -19,7 +19,7 @@ describe("PC actions", () => {
         },
         clear: () => {},
       },
-      theme: { base: () => "white", muted: () => "gray" },
+      theme: () => makePokecodeTheme(),
       resolveSprite: async () => ({ kind: "placeholder" }),
       imageProtocol: () => "auto",
     })
@@ -40,7 +40,7 @@ describe("PC actions", () => {
         set: () => dialogs.push("set"),
         clear: () => dialogs.push("clear"),
       },
-      theme: { base: () => "white", muted: () => "gray" },
+      theme: () => makePokecodeTheme(),
       resolveSprite: async () => ({ kind: "placeholder" }),
       imageProtocol: () => "auto",
     })

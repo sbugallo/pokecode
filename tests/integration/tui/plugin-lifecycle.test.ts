@@ -4,7 +4,12 @@ import type { ClipboardService } from "@opentui/core"
 import { createPokemonTuiPlugin } from "../../../src/adapters/opencode/tui/plugin.js"
 import { registerPokemonSidebar } from "../../../src/adapters/opencode/tui/sidebar/register.js"
 import type { GameState } from "../../../src/application/contracts/game.js"
-import { deferred, makeTuiRpcTransport, makeTuiState } from "../../support/tui.js"
+import {
+  deferred,
+  makeResolvedTheme,
+  makeTuiRpcTransport,
+  makeTuiState,
+} from "../../support/tui.js"
 
 function clipboard(dispose: () => Promise<void>): ClipboardService {
   return {
@@ -33,7 +38,7 @@ function makeContext(
       on: () => {},
       off: () => {},
     },
-    theme: { text: { base: "white", muted: "gray" } },
+    theme: makeResolvedTheme({ text: "#ffffff", muted: "#808080" }),
     ui: {
       toast: {
         show: (options: Parameters<Context["ui"]["toast"]["show"]>[0]) =>

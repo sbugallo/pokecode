@@ -2,6 +2,7 @@ import { createSignal, Show } from "solid-js"
 import type { Language } from "../../../../domain/shared/language.js"
 import { uiCopy } from "../../../presentation/ui-copy.js"
 import type { SpriteInput, SpriteResolution, SpriteResolver } from "../../../sprites/contracts.js"
+import { fallbackPokecodeTheme, type PokecodeSurface } from "../theme.js"
 import type { ImageProtocolAccessor } from "./image-protocol.js"
 import { createOwnerBoundCallback } from "./owner.js"
 
@@ -13,6 +14,7 @@ export function Sprite(properties: {
   readonly language?: (() => Language) | undefined
   readonly compactFallback?: boolean | undefined
   readonly protocol?: ImageProtocolAccessor | undefined
+  readonly theme?: (() => PokecodeSurface) | undefined
   readonly width?: number | undefined
   readonly height?: number | undefined
 }) {
@@ -27,12 +29,13 @@ export function Sprite(properties: {
     const resolved = sprite()
     return resolved?.kind === "cached" ? resolved.source : null
   }
+  const surface = () => properties.theme?.() ?? fallbackPokecodeTheme.current
   return (
     <Show
       when={source()}
       fallback={
         <box alignItems="center" height={height} justifyContent="center" width={width}>
-          <text>
+          <text fg={surface().muted}>
             {properties.compactFallback === true
               ? sprite() === null
                 ? "…"

@@ -13,6 +13,7 @@ import type { SpriteResolver } from "../../../sprites/contracts.js"
 import type { ImageProtocolAccessor } from "../components/image-protocol.js"
 import { MoveList } from "../components/move-list.js"
 import { Sprite } from "../components/sprite.js"
+import { fallbackPokecodeTheme, type PokecodeSurface } from "../theme.js"
 
 export function PendingChoiceCard(properties: {
   readonly state: () => GameState
@@ -21,6 +22,7 @@ export function PendingChoiceCard(properties: {
   readonly resolveSprite: SpriteResolver
   readonly imageProtocol: ImageProtocolAccessor
   readonly language: () => GameState["locale"]
+  readonly theme?: (() => PokecodeSurface) | undefined
 }) {
   const choice = () => properties.state().pendingChoices[0]
   return (
@@ -36,6 +38,7 @@ export function PendingChoiceCard(properties: {
               resolveSprite={properties.resolveSprite}
               imageProtocol={properties.imageProtocol}
               language={properties.language}
+              theme={properties.theme}
             />
           </Match>
           <Match when={activeChoice.kind === "evolution"}>
@@ -47,6 +50,7 @@ export function PendingChoiceCard(properties: {
               imageProtocol={properties.imageProtocol}
               language={properties.language}
               onResolve={properties.onResolveEvolution}
+              theme={properties.theme}
             />
           </Match>
         </Switch>
@@ -63,6 +67,7 @@ export function MoveChoiceCard(properties: {
   readonly resolveSprite: SpriteResolver
   readonly imageProtocol: ImageProtocolAccessor
   readonly language?: (() => GameState["locale"]) | undefined
+  readonly theme?: (() => PokecodeSurface) | undefined
 }) {
   const choice = properties.choice()
   if (choice === undefined) return null
@@ -74,6 +79,7 @@ export function MoveChoiceCard(properties: {
   if (pokemon === undefined || pokemon === null) return null
   const dimensions = useTerminalDimensions()
   const language = () => properties.language?.() ?? "en"
+  const surface = () => properties.theme?.() ?? fallbackPokecodeTheme.current
   const moves = [...pokemon.moves, payload.move]
   const copy = () => uiCopy(language())
   return (
@@ -87,18 +93,19 @@ export function MoveChoiceCard(properties: {
       width="100%"
       minWidth={0}
     >
-      <text width="100%" wrapMode="word" textAlign="center">
+      <text fg={surface().text} width="100%" wrapMode="word" textAlign="center">
         {copy().movePrompt(pokemon.name)}
       </text>
       <Sprite
         language={properties.language}
         resolve={properties.resolveSprite}
         protocol={properties.imageProtocol}
+        theme={surface}
         shiny={pokemon.shiny}
         gender={pokemon.gender}
         speciesId={pokemon.speciesId}
       />
-      <text width="100%" wrapMode="word" textAlign="center">
+      <text fg={surface().muted} width="100%" wrapMode="word" textAlign="center">
         {copy().moveDescription}
       </text>
       <MoveList
@@ -109,6 +116,7 @@ export function MoveChoiceCard(properties: {
         offeredMoveId={payload.move.id}
         height={Math.min(28, Math.max(6, dimensions().height - 19))}
         onActivate={(moveId) => properties.onResolve(choice.id, moveId)}
+        theme={properties.theme}
       />
     </box>
   )
@@ -122,6 +130,7 @@ export function EvolutionChoiceCard(properties: {
   readonly imageProtocol: ImageProtocolAccessor
   readonly language: () => GameState["locale"]
   readonly onResolve: (choiceId: string, selectedSpeciesId: string) => Promise<void>
+  readonly theme?: (() => PokecodeSurface) | undefined
 }) {
   const choice = properties.choice()
   if (choice === undefined) return null
@@ -131,6 +140,7 @@ export function EvolutionChoiceCard(properties: {
     properties.party().find((slot) => slot.pokemon?.id === payload.pokemonId)?.pokemon ??
     properties.choicePokemon().find((instance) => instance.id === payload.pokemonId)
   if (pokemon === undefined || pokemon === null) return null
+  const surface = () => properties.theme?.() ?? fallbackPokecodeTheme.current
   const [hoveredOption, setHoveredOption] = createSignal<string | null>(null)
   return (
     <box
@@ -141,16 +151,17 @@ export function EvolutionChoiceCard(properties: {
       gap={1}
       padding={1}
     >
-      <text>{uiCopy(properties.language()).evolutionPrompt(pokemon.name)}</text>
+      <text fg={surface().text}>{uiCopy(properties.language()).evolutionPrompt(pokemon.name)}</text>
       <Sprite
         language={properties.language}
         resolve={properties.resolveSprite}
         protocol={properties.imageProtocol}
+        theme={surface}
         shiny={pokemon.shiny}
         gender={pokemon.gender}
         speciesId={pokemon.speciesId}
       />
-      <text>{uiCopy(properties.language()).chooseEvolution}</text>
+      <text fg={surface().muted}>{uiCopy(properties.language()).chooseEvolution}</text>
       <box flexDirection="row" flexWrap="wrap" gap={1} justifyContent="center" width="100%">
         {payload.options.map((option) => (
           <EvolutionOptionCard
@@ -163,6 +174,7 @@ export function EvolutionChoiceCard(properties: {
             resolveSprite={properties.resolveSprite}
             imageProtocol={properties.imageProtocol}
             language={properties.language}
+            theme={surface}
           />
         ))}
       </box>
@@ -180,11 +192,13 @@ function EvolutionOptionCard(properties: {
   readonly resolveSprite: SpriteResolver
   readonly imageProtocol: ImageProtocolAccessor
   readonly language: () => GameState["locale"]
+  readonly theme?: (() => PokecodeSurface) | undefined
 }) {
+  const surface = () => properties.theme?.() ?? fallbackPokecodeTheme.current
   return (
     <button
       alignItems="center"
-      backgroundColor={properties.hovered() ? "#404040" : undefined}
+      backgroundColor={properties.hovered() ? surface().highlight : undefined}
       border={false}
       flexDirection="column"
       flexShrink={0}
@@ -209,13 +223,14 @@ function EvolutionOptionCard(properties: {
           language={properties.language}
           resolve={properties.resolveSprite}
           protocol={properties.imageProtocol}
+          theme={surface}
           shiny={properties.pokemon.shiny}
           gender={properties.pokemon.gender}
           speciesId={properties.option.speciesId}
         />
       </box>
       <box flexDirection="row" justifyContent="center" width="100%">
-        <text>{properties.option.name}</text>
+        <text fg={surface().text}>{properties.option.name}</text>
       </box>
     </button>
   )
@@ -226,11 +241,13 @@ export function RegionChoiceCard(properties: {
   readonly visitedRegionIds: () => readonly string[]
   readonly onTravel: (regionId: string) => Promise<void>
   readonly language?: (() => GameState["locale"]) | undefined
+  readonly theme?: (() => PokecodeSurface) | undefined
 }) {
   const choice = properties.choice()
   if (choice === undefined) return null
   const payload = decodeRegionChoiceProjection(choice.payload)
   if (payload === null) return null
+  const surface = () => properties.theme?.() ?? fallbackPokecodeTheme.current
   const [hoveredRegion, setHoveredRegion] = createSignal<string | null>(null)
   const availableRegions = () => regions(properties.language?.() ?? "en")
   const completedRegionName = () =>
@@ -244,8 +261,10 @@ export function RegionChoiceCard(properties: {
       gap={1}
       padding={1}
     >
-      <text>{uiCopy(properties.language?.() ?? "en").regionComplete(completedRegionName())}</text>
-      <text>{uiCopy(properties.language?.() ?? "en").chooseNextRegion}</text>
+      <text fg={surface().text}>
+        {uiCopy(properties.language?.() ?? "en").regionComplete(completedRegionName())}
+      </text>
+      <text fg={surface().muted}>{uiCopy(properties.language?.() ?? "en").chooseNextRegion}</text>
       <box flexDirection="row" flexWrap="wrap" gap={1} justifyContent="center" width="100%">
         {availableRegions()
           .filter(
@@ -255,7 +274,7 @@ export function RegionChoiceCard(properties: {
           .map((region) => (
             <button
               alignItems="center"
-              backgroundColor={hoveredRegion() === region.id ? "#404040" : undefined}
+              backgroundColor={hoveredRegion() === region.id ? surface().highlight : undefined}
               border={false}
               flexShrink={0}
               focusable
@@ -276,7 +295,7 @@ export function RegionChoiceCard(properties: {
                 }
               }}
             >
-              <text>{region.name}</text>
+              <text fg={surface().text}>{region.name}</text>
             </button>
           ))}
       </box>

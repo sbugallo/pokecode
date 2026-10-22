@@ -9,6 +9,7 @@ import { createSignal, For, Show } from "solid-js"
 import type { Move } from "../../../../domain/pokemon/types.js"
 import type { Language } from "../../../../domain/shared/language.js"
 import { moveInspectionHint, presentMove } from "../../../presentation/move-details.js"
+import { fallbackPokecodeTheme, type PokecodeSurface } from "../theme.js"
 import "../controls/native.js"
 
 export function MoveList(properties: {
@@ -19,9 +20,11 @@ export function MoveList(properties: {
   readonly centered?: boolean
   readonly leftAlignMoves?: boolean
   readonly onActivate?: (moveId: string) => Promise<void>
+  readonly theme?: (() => PokecodeSurface) | undefined
 }) {
   const [hovered, setHovered] = createSignal<string | null>(null)
   const [inspected, setInspected] = createSignal<string | null>(null)
+  const surface = () => properties.theme?.() ?? fallbackPokecodeTheme.current
   const moves = () => properties.moves.map((move) => presentMove(move, properties.language))
   const description = () => moves().find((move) => move.id === inspected())?.description
   let list: ScrollBoxRenderable | undefined
@@ -48,6 +51,8 @@ export function MoveList(properties: {
           }
         }
         const secondary = () => move.id === properties.offeredMoveId
+        const action = () => (secondary() ? surface().secondary : surface().primary)
+        const hoveredRow = () => hovered() === move.id
         return (
           <box
             ref={(value) => {
@@ -66,15 +71,7 @@ export function MoveList(properties: {
               paddingLeft={2}
               paddingRight={2}
               justifyContent="center"
-              backgroundColor={
-                secondary()
-                  ? hovered() === move.id
-                    ? "#4b5563"
-                    : "#6b7280"
-                  : hovered() === move.id
-                    ? "#1d4ed8"
-                    : "#2563eb"
-              }
+              backgroundColor={hoveredRow() ? action().backgroundHovered : action().background}
               onMouseOver={() => inspect(move.id)}
               onMouseOut={() => setHovered(null)}
               onFocus={focus}
@@ -96,7 +93,7 @@ export function MoveList(properties: {
               }}
             >
               <text
-                fg="#ffffff"
+                fg={hoveredRow() ? action().labelHovered : action().label}
                 wrapMode="word"
                 textAlign={properties.centered && !properties.leftAlignMoves ? "center" : "left"}
               >
@@ -104,6 +101,7 @@ export function MoveList(properties: {
               </text>
             </button>
             <text
+              fg={surface().muted}
               maxWidth="100%"
               wrapMode="word"
               textAlign={properties.centered && !properties.leftAlignMoves ? "center" : "left"}
@@ -111,6 +109,7 @@ export function MoveList(properties: {
               {move.classification}
             </text>
             <text
+              fg={surface().muted}
               maxWidth="100%"
               wrapMode="word"
               textAlign={properties.centered && !properties.leftAlignMoves ? "center" : "left"}
@@ -169,7 +168,12 @@ export function MoveList(properties: {
         contentOptions={{ flexDirection: "column" }}
         viewportOptions={{ minHeight: 0, overflow: "hidden" }}
       >
-        <text width="100%" wrapMode="word" textAlign={properties.centered ? "center" : "left"}>
+        <text
+          fg={surface().text}
+          width="100%"
+          wrapMode="word"
+          textAlign={properties.centered ? "center" : "left"}
+        >
           {description() || moveInspectionHint(properties.language)}
         </text>
       </scrollbox>

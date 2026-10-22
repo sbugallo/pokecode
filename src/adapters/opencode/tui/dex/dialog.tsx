@@ -4,6 +4,7 @@ import { useKeyboard, useTerminalDimensions } from "@opentui/solid"
 import { For } from "solid-js"
 import type { PokedexEntry } from "../../../../application/contracts/game.js"
 import { bold } from "../components/action-button.js"
+import { toPokecodeTheme } from "../theme.js"
 
 export const dexFooter = "↑↓: 1 item · ←→: 10 items · Esc: Close"
 
@@ -40,6 +41,7 @@ export function PokemonDexDialog(properties: {
   readonly title: string
 }) {
   const context = usePlugin()
+  const surface = () => toPokecodeTheme(context.theme).dialog
   const dimensions = useTerminalDimensions()
   const height = () => Math.max(10, Math.floor(dimensions().height / 2) - 1)
   const width = () => dexModalWidth(dimensions().width)
@@ -61,7 +63,7 @@ export function PokemonDexDialog(properties: {
 
   return (
     <box flexDirection="column" height={height()} paddingLeft={1} paddingRight={1} width={width()}>
-      <text attributes={bold} fg={context.theme.text.base} flexShrink={0}>
+      <text attributes={bold} fg={surface().text} flexShrink={0}>
         {properties.title}
       </text>
       <box
@@ -96,10 +98,10 @@ export function PokemonDexDialog(properties: {
           <For each={properties.pokemon}>
             {(pokemon) => (
               <box flexDirection="row" width="100%">
-                <text fg={pokemon.status === "caught" ? "#22c55e" : context.theme.text.muted}>
+                <text fg={pokemon.status === "caught" ? surface().success : surface().muted}>
                   {pokemon.status === "unknown" ? "  " : "● "}
                 </text>
-                <text>
+                <text fg={pokemon.status === "unknown" ? surface().muted : surface().text}>
                   #{pokemon.number.toString().padStart(4, "0")}{" "}
                   {dexDisplayName(pokemon.name, pokemon.status)}
                 </text>
@@ -108,7 +110,9 @@ export function PokemonDexDialog(properties: {
           </For>
         </scrollbox>
       </box>
-      <text flexShrink={0}>{dexFooter}</text>
+      <text fg={surface().muted} flexShrink={0}>
+        {dexFooter}
+      </text>
     </box>
   )
 }

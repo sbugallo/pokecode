@@ -1,10 +1,12 @@
 import type { Context } from "@opencode/plugin/tui/context"
+import type { ColorInput } from "@opentui/core"
 import type { Accessor } from "solid-js"
 import type { GameState } from "../../../../application/contracts/game.js"
 import { uiCopy } from "../../../presentation/ui-copy.js"
 import type { SpriteResolver } from "../../../sprites/contracts.js"
 import { DexCommand, ExportCommand, LocationsCommand, PcCommand } from "../commands/commands.js"
 import type { ImageProtocolAccessor } from "../components/image-protocol.js"
+import type { PokecodeTheme } from "../theme.js"
 import type { createSidebarActions } from "./actions.js"
 import { SidebarView } from "./view.js"
 
@@ -13,7 +15,7 @@ type SidebarActions = ReturnType<typeof createSidebarActions>
 export function registerPokemonSidebar(dependencies: {
   readonly slot: Context["ui"]["slot"]
   readonly state: Accessor<GameState>
-  readonly theme: { readonly base: Accessor<string>; readonly muted: Accessor<string> }
+  readonly theme: () => PokecodeTheme
   readonly hoveredStarter: Accessor<string | null>
   readonly setHoveredStarter: (speciesId: string | null) => void
   readonly hoveredEncounterAction: Accessor<"catch" | "run" | null>
@@ -31,7 +33,7 @@ export function registerPokemonSidebar(dependencies: {
     append: "sidebar.content",
     render: () => (
       <box flexDirection="column" paddingTop={1} gap={1}>
-        <SidebarTitle color={dependencies.theme.base} title={copy().title} />
+        <SidebarTitle color={() => dependencies.theme().current.text} title={copy().title} />
         <LocationsCommand
           enabled={() => dependencies.state().phase === "active"}
           language={() => dependencies.state().locale}
@@ -52,7 +54,6 @@ export function registerPokemonSidebar(dependencies: {
           hoveredEncounterAction={dependencies.hoveredEncounterAction}
           hoveredStarter={dependencies.hoveredStarter}
           hoverStarter={dependencies.setHoveredStarter}
-          mutedColor={dependencies.theme.muted}
           onChooseStarter={dependencies.actions.chooseStarter}
           onTravelRegion={dependencies.actions.travelToRegion}
           onTravelLocation={dependencies.actions.travelToLocation}
@@ -62,7 +63,7 @@ export function registerPokemonSidebar(dependencies: {
           resolveSprite={dependencies.resolveSprite}
           imageProtocol={dependencies.imageProtocol}
           setHoveredEncounterAction={dependencies.setHoveredEncounterAction}
-          starterHoverBackground={dependencies.theme.muted}
+          theme={dependencies.theme}
           state={dependencies.state}
         />
       </box>
@@ -71,7 +72,7 @@ export function registerPokemonSidebar(dependencies: {
 }
 
 export function SidebarTitle(properties: {
-  readonly color: Accessor<string>
+  readonly color: Accessor<ColorInput>
   readonly title: string
 }) {
   return <text fg={properties.color()}>{properties.title}</text>

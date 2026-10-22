@@ -9,17 +9,19 @@ import type { SpriteResolver } from "../../../sprites/contracts.js"
 import type { ImageProtocolAccessor } from "../components/image-protocol.js"
 import { MoveList } from "../components/move-list.js"
 import { Sprite } from "../components/sprite.js"
+import { fallbackPokecodeTheme, type PokecodeSurface } from "../theme.js"
 
 const stats = ["hp", "attack", "defense", "specialAttack", "specialDefense", "speed"] as const
 
 export function PcDetails(properties: {
   readonly pokemon: PokemonInstance
   readonly language: Language
-  readonly textColor: string
+  readonly theme?: (() => PokecodeSurface) | undefined
   readonly resolveSprite: SpriteResolver
   readonly imageProtocol: ImageProtocolAccessor
 }) {
   const copy = () => pcCopy(properties.language)
+  const surface = () => properties.theme?.() ?? fallbackPokecodeTheme.current
   const values = () => pokemonStats(properties.pokemon)
   const nature = () => pokemonNatureModifiers(properties.pokemon.nature)
   const gender = () => properties.pokemon.gender
@@ -36,18 +38,23 @@ export function PcDetails(properties: {
           language={() => properties.language}
           resolve={properties.resolveSprite}
           protocol={properties.imageProtocol}
+          theme={surface}
           shiny={properties.pokemon.shiny}
           gender={properties.pokemon.gender}
           speciesId={properties.pokemon.speciesId}
         />
-        <text>{`${properties.pokemon.shiny ? "★ " : ""}${properties.pokemon.name} ${symbol()} Lv.${properties.pokemon.level}`}</text>
+        <text
+          fg={surface().text}
+        >{`${properties.pokemon.shiny ? "★ " : ""}${properties.pokemon.name} ${symbol()} Lv.${properties.pokemon.level}`}</text>
       </box>
       <box alignItems="center" flexDirection="column">
-        <text>{`${copy().nature}: ${properties.pokemon.nature}`}</text>
-        <text>{`${copy().ability}: ${properties.pokemon.ability}`}</text>
+        <text fg={surface().text}>{`${copy().nature}: ${properties.pokemon.nature}`}</text>
+        <text fg={surface().text}>{`${copy().ability}: ${properties.pokemon.ability}`}</text>
       </box>
       <box alignItems="center" flexDirection="column">
-        <text>{statLine([copy().stats.name, copy().stats.value, "EV", "IV"])}</text>
+        <text fg={surface().muted}>
+          {statLine([copy().stats.name, copy().stats.value, "EV", "IV"])}
+        </text>
         <For each={stats}>
           {(stat, index) => {
             const name = () => copy().statNames[index()] ?? stat
@@ -55,10 +62,10 @@ export function PcDetails(properties: {
               <text
                 fg={
                   stat === nature().increased
-                    ? "#ef4444"
+                    ? surface().error
                     : stat === nature().decreased
-                      ? "#3b82f6"
-                      : properties.textColor
+                      ? surface().info
+                      : surface().text
                 }
               >
                 {statLine(
@@ -76,11 +83,15 @@ export function PcDetails(properties: {
         </For>
       </box>
       <box alignItems="center" flexDirection="column" width="100%" gap={1}>
-        <text>{copy().moves}</text>
+        <text fg={surface().muted}>{copy().moves}</text>
         {properties.pokemon.moves.length === 0 ? (
-          <text>—</text>
+          <text fg={surface().muted}>—</text>
         ) : (
-          <MoveList moves={properties.pokemon.moves} language={properties.language} />
+          <MoveList
+            moves={properties.pokemon.moves}
+            language={properties.language}
+            theme={surface}
+          />
         )}
       </box>
     </box>

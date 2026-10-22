@@ -7,7 +7,14 @@ import { createPcAction } from "../../../src/adapters/opencode/tui/pc/actions.js
 import { SidebarTitle } from "../../../src/adapters/opencode/tui/sidebar/register.js"
 import { StarterButtons } from "../../../src/adapters/opencode/tui/sidebar/view.js"
 import { createTuiStateCoordinator } from "../../../src/adapters/opencode/tui/state/coordinator.js"
-import { makeTuiClient, makeTuiState, renderTui, testTui } from "../../support/tui.js"
+import { toPokecodeTheme } from "../../../src/adapters/opencode/tui/theme.js"
+import {
+  makeResolvedTheme,
+  makeTuiClient,
+  makeTuiState,
+  renderTui,
+  testTui,
+} from "../../support/tui.js"
 
 function spanColor(
   rendered: Awaited<ReturnType<typeof testRender>>,
@@ -23,8 +30,8 @@ function spanColor(
 describe("reactive TUI theme accessors", () => {
   testTui("keeps sidebar, hover, and PC dialog colors live across theme changes", async () => {
     // GIVEN
-    const [base, setBase] = createSignal("#ffffff")
-    const [muted, setMuted] = createSignal("#888888")
+    const [resolved, setResolved] = createSignal(makeResolvedTheme())
+    const theme = () => toPokecodeTheme(resolved())
     let renderDialog: (() => JSX.Element) | undefined
     const dialog: Pick<Context["ui"]["dialog"], "show" | "set" | "clear"> = {
       show: (render) => {
@@ -37,7 +44,7 @@ describe("reactive TUI theme accessors", () => {
       rpc: makeTuiClient({ collection: async () => ({ pokemon: [] }) }),
       state: createTuiStateCoordinator(makeTuiState(), () => {}),
       dialog,
-      theme: { base, muted },
+      theme,
       resolveSprite: async () => ({ kind: "placeholder" }),
       imageProtocol: () => "auto",
     })
@@ -47,15 +54,15 @@ describe("reactive TUI theme accessors", () => {
     const rendered = await renderTui(
       () => (
         <box flexDirection="column" gap={1}>
-          <SidebarTitle color={base} title="PokéCode" />
+          <SidebarTitle color={() => theme().current.text} title="PokéCode" />
           <StarterButtons
             regionId={() => "kanto"}
             resolveSprite={async () => ({ kind: "placeholder" })}
             imageProtocol={() => "auto"}
             hovered={() => "bulbasaur"}
-            hoverBackground={muted}
             onChoose={async () => {}}
             onHover={() => {}}
+            theme={() => theme().current}
           />
           {pcDialog()}
         </box>
@@ -71,8 +78,14 @@ describe("reactive TUI theme accessors", () => {
       pcTitle: spanColor(rendered, "Pokemon PC", "fg"),
       pcFooter: spanColor(rendered, "Up/Down", "fg"),
     }
-    setBase("#00ffff")
-    setMuted("#123456")
+    setResolved(
+      makeResolvedTheme({
+        accent: "#00ffff",
+        highlight: "#123456",
+        text: "#fedcba",
+        muted: "#654321",
+      }),
+    )
     await rendered.flush()
 
     // THEN

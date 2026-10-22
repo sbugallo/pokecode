@@ -1,9 +1,9 @@
 import { describe, expect } from "bun:test"
-import { type Renderable, RGBA } from "@opentui/core"
+import type { Renderable } from "@opentui/core"
 import { createSignal } from "solid-js"
 import { MoveList } from "../../../src/adapters/opencode/tui/components/move-list.js"
 import { presentMove } from "../../../src/adapters/presentation/move-details.js"
-import { renderTui, testTui, testTuiEach } from "../../support/tui.js"
+import { makePokecodeSurface, renderTui, testTui, testTuiEach } from "../../support/tui.js"
 
 const moves = [
   { id: "tackle", name: "Tackle" },
@@ -27,12 +27,14 @@ describe("shared move list", () => {
     (language) => `shows localized metadata and hover descriptions in ${language}`,
     async (language) => {
       const resolved: string[] = []
+      const surface = makePokecodeSurface()
       const rendered = await renderTui(
         () => (
           <MoveList
             moves={moves}
             language={language}
             offeredMoveId="razor-leaf"
+            theme={() => surface}
             height={28}
             onActivate={async (id) => {
               resolved.push(id)
@@ -57,13 +59,13 @@ describe("shared move list", () => {
           .captureSpans()
           .lines.flatMap((line) => line.spans)
           .find((span) => span.text.includes(name))?.bg
-      expect(background(first.name)).toEqual(RGBA.fromHex("#2563eb"))
+      expect(background(first.name)).toEqual(surface.primary.background)
       const offeredName = presentMove(moves[4], language).name
-      expect(background(offeredName)).toEqual(RGBA.fromHex("#6b7280"))
+      expect(background(offeredName)).toEqual(surface.secondary.background)
 
       await rendered.mockMouse.moveTo(button.x + 1, button.y)
       await rendered.flush()
-      expect(background(first.name)).toEqual(RGBA.fromHex("#1d4ed8"))
+      expect(background(first.name)).toEqual(surface.primary.backgroundHovered)
       expect(rendered.captureCharFrame().replace(/\s+/g, " ")).toContain(first.description)
       expect(resolved).toEqual([])
       await rendered.mockMouse.click(button.x + 1, button.y)
@@ -72,7 +74,7 @@ describe("shared move list", () => {
 
       await rendered.mockMouse.moveTo(offered.x + 1, offered.y)
       await rendered.flush()
-      expect(background(offeredName)).toEqual(RGBA.fromHex("#4b5563"))
+      expect(background(offeredName)).toEqual(surface.secondary.backgroundHovered)
       await rendered.mockMouse.click(offered.x + 1, offered.y)
       await rendered.flush()
       expect(resolved).toEqual(["tackle", "razor-leaf"])

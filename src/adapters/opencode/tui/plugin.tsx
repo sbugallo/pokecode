@@ -14,6 +14,7 @@ import { registerPokemonSidebar } from "./sidebar/register.js"
 import { createTuiCleanup } from "./state/cleanup.js"
 import { createTuiStateCoordinator, initialTuiState } from "./state/coordinator.js"
 import { cleanupAfterSetupFailure } from "./state/setup-failure.js"
+import { toPokecodeTheme } from "./theme.js"
 import { createLocationTravelAction } from "./travel/actions.js"
 import "./controls/native.js"
 
@@ -71,12 +72,15 @@ export function createPokemonTuiPlugin(dependencies = defaultDependencies) {
           state,
           toast: (options) => context.ui.toast.show(options),
         })
+        // Read the host theme at render time so live theme switches propagate instantly.
+        const theme = () => toPokecodeTheme(context.theme)
         const chooseLocation = createLocationTravelAction({
           rpc,
           state,
           dialog: context.ui.dialog,
           resolveSprite,
           imageProtocol: imageProtocol.protocol,
+          theme,
           travelToLocation: sidebarActions.travelToLocation,
         })
         const showDex = createDexAction({ rpc, state, dialog: context.ui.dialog })
@@ -84,10 +88,7 @@ export function createPokemonTuiPlugin(dependencies = defaultDependencies) {
           rpc,
           state,
           dialog: context.ui.dialog,
-          theme: {
-            base: () => context.theme.text.base,
-            muted: () => context.theme.text.muted,
-          },
+          theme,
           resolveSprite,
           imageProtocol: imageProtocol.protocol,
         })
@@ -100,10 +101,7 @@ export function createPokemonTuiPlugin(dependencies = defaultDependencies) {
         unregisterSlot = (dependencies.registerSidebar ?? registerPokemonSidebar)({
           slot: context.ui.slot,
           state: state.state,
-          theme: {
-            base: () => context.theme.text.base,
-            muted: () => context.theme.text.muted,
-          },
+          theme,
           hoveredStarter,
           setHoveredStarter,
           hoveredEncounterAction,

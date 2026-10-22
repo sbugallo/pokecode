@@ -5,10 +5,10 @@ import type { SpriteResolver } from "../../../sprites/contracts.js"
 import { PokecodeActionButton } from "../components/action-button.js"
 import type { ImageProtocolAccessor } from "../components/image-protocol.js"
 import { Sprite } from "../components/sprite.js"
+import { fallbackPokecodeTheme, type PokecodeSurface } from "../theme.js"
 
 export function EncounterCard(properties: {
   readonly encounter: () => GameState["pendingEncounter"]
-  readonly mutedColor: () => string
   readonly hoveredAction: () => "catch" | "run" | null
   readonly onHover: (action: "catch" | "run" | null) => void
   readonly onResolve: (
@@ -19,9 +19,11 @@ export function EncounterCard(properties: {
   readonly resolveSprite: SpriteResolver
   readonly imageProtocol: ImageProtocolAccessor
   readonly language?: (() => GameState["locale"]) | undefined
+  readonly theme?: (() => PokecodeSurface) | undefined
 }) {
   const encounter = properties.encounter()
   if (encounter === null) return null
+  const surface = () => properties.theme?.() ?? fallbackPokecodeTheme.current
   const genderSymbol = encounter.gender === "male" ? "♂" : encounter.gender === "female" ? "♀" : "—"
   const copy = uiCopy(properties.language?.() ?? "en")
   return (
@@ -34,8 +36,8 @@ export function EncounterCard(properties: {
       padding={1}
     >
       <box flexDirection="row">
-        <text fg={properties.encounter()?.caught ? "#22c55e" : properties.mutedColor()}>● </text>
-        <text>
+        <text fg={properties.encounter()?.caught ? surface().success : surface().muted}>● </text>
+        <text fg={surface().text}>
           {copy.encounter({
             genderSymbol,
             kind: encounter.kind,
@@ -49,6 +51,7 @@ export function EncounterCard(properties: {
         language={properties.language}
         resolve={properties.resolveSprite}
         protocol={properties.imageProtocol}
+        theme={surface}
         shiny={encounter.shiny}
         gender={encounter.gender}
         speciesId={encounter.speciesId}
@@ -60,6 +63,7 @@ export function EncounterCard(properties: {
           onActivate={() => properties.onResolve(encounter.id, encounter, true)}
           onHover={() => properties.onHover("catch")}
           onLeave={() => properties.onHover(null)}
+          theme={surface}
           tone="primary"
         />
         <PokecodeActionButton
@@ -68,6 +72,7 @@ export function EncounterCard(properties: {
           onActivate={() => properties.onResolve(encounter.id, encounter, false)}
           onHover={() => properties.onHover("run")}
           onLeave={() => properties.onHover(null)}
+          theme={surface}
           tone="secondary"
         />
       </box>

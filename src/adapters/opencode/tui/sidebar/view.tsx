@@ -1,5 +1,4 @@
 import { type KeyEvent, MouseButton, type MouseEvent } from "@opentui/core"
-import type { Accessor } from "solid-js"
 import { createSignal, Match, Show, Switch } from "solid-js"
 import type { GameState } from "../../../../application/contracts/game.js"
 import { decodeStarterChoiceProjection } from "../../../../domain/choices/choices.js"
@@ -12,6 +11,7 @@ import { EncounterCard } from "../choices/encounter.js"
 import { PokecodeActionButton } from "../components/action-button.js"
 import type { ImageProtocolAccessor } from "../components/image-protocol.js"
 import { Sprite } from "../components/sprite.js"
+import { fallbackPokecodeTheme, type PokecodeSurface, type PokecodeTheme } from "../theme.js"
 
 type SidebarViewKind = "starter" | "move" | "evolution" | "region" | "encounter" | "team"
 
@@ -30,7 +30,6 @@ export function SidebarView(properties: {
   readonly hoveredEncounterAction: () => "catch" | "run" | null
   readonly hoveredStarter: () => string | null
   readonly hoverStarter: (speciesId: string | null) => void
-  readonly mutedColor: () => string
   readonly onChooseStarter: (regionId: string, speciesId: string) => Promise<void>
   readonly onTravelRegion: (regionId: string) => Promise<void>
   readonly onTravelLocation: (locationId: string) => Promise<void>
@@ -44,9 +43,10 @@ export function SidebarView(properties: {
   readonly resolveSprite: SpriteResolver
   readonly imageProtocol: ImageProtocolAccessor
   readonly setHoveredEncounterAction: (action: "catch" | "run" | null) => void
-  readonly starterHoverBackground: string | Accessor<string>
+  readonly theme: () => PokecodeTheme
   readonly state: () => GameState
 }) {
+  const surface = () => properties.theme().current
   const view = () => sidebarViewFor(properties.state())
   const decisionCount = () =>
     properties.state().pendingChoices.filter((choice) => choice.kind !== "catch").length
@@ -54,7 +54,7 @@ export function SidebarView(properties: {
   return (
     <box flexDirection="column" gap={1}>
       <Show when={decisionCount() + encounterCount() > 0}>
-        <text>
+        <text fg={surface().text}>
           {uiCopy(properties.state().locale).queueCounts(decisionCount(), encounterCount())}
         </text>
       </Show>
@@ -62,7 +62,6 @@ export function SidebarView(properties: {
         <Match when={view() === "starter"}>
           <StarterButtons
             hovered={properties.hoveredStarter}
-            hoverBackground={properties.starterHoverBackground}
             language={() => properties.state().locale}
             regionId={() => {
               const choice = properties.state().pendingChoices[0]
@@ -74,6 +73,7 @@ export function SidebarView(properties: {
             onHover={properties.hoverStarter}
             resolveSprite={properties.resolveSprite}
             imageProtocol={properties.imageProtocol}
+            theme={surface}
           />
         </Match>
         <Match when={view() === "move" || view() === "evolution"}>
@@ -84,6 +84,7 @@ export function SidebarView(properties: {
             resolveSprite={properties.resolveSprite}
             imageProtocol={properties.imageProtocol}
             language={() => properties.state().locale}
+            theme={surface}
           />
         </Match>
         <Match when={view() === "region"}>
@@ -97,6 +98,7 @@ export function SidebarView(properties: {
                 .map((region) => region.id) ?? []
             }
             onTravel={properties.onTravelRegion}
+            theme={surface}
           />
         </Match>
         <Match when={view() === "encounter"}>
@@ -104,24 +106,29 @@ export function SidebarView(properties: {
             {(encounter: NonNullable<GameState["pendingEncounter"]>) => (
               <EncounterCard
                 encounter={() => encounter}
-                mutedColor={properties.mutedColor}
                 hoveredAction={properties.hoveredEncounterAction}
                 onHover={properties.setHoveredEncounterAction}
                 onResolve={properties.onResolveEncounter}
                 resolveSprite={properties.resolveSprite}
                 imageProtocol={properties.imageProtocol}
                 language={() => properties.state().locale}
+                theme={surface}
               />
             )}
           </Show>
         </Match>
         <Match when={view() === "team"}>
-          <LocationProgress state={properties.state} onTravel={properties.onTravelLocation} />
+          <LocationProgress
+            state={properties.state}
+            onTravel={properties.onTravelLocation}
+            theme={surface}
+          />
           <PartyGrid
             language={() => properties.state().locale}
             party={() => properties.state().party}
             resolveSprite={properties.resolveSprite}
             imageProtocol={properties.imageProtocol}
+            theme={surface}
           />
         </Match>
       </Switch>
@@ -134,16 +141,17 @@ type StarterButtonsProperties = {
   readonly imageProtocol: ImageProtocolAccessor
   readonly regionId?: () => string | undefined
   readonly hovered: () => string | null
-  readonly hoverBackground: string | Accessor<string>
   readonly language?: (() => GameState["locale"]) | undefined
   readonly onChoose: (regionId: string, speciesId: string) => Promise<void>
   readonly onHover: (speciesId: string | null) => void
+  readonly theme?: (() => PokecodeSurface) | undefined
 }
 
 export function StarterButtons(properties: StarterButtonsProperties) {
+  const surface = () => properties.theme?.() ?? fallbackPokecodeTheme.current
   return (
     <box flexDirection="column" gap={1}>
-      <text>{uiCopy(properties.language?.() ?? "en").chooseStarter}</text>
+      <text fg={surface().accent}>{uiCopy(properties.language?.() ?? "en").chooseStarter}</text>
       {regions(properties.language?.() ?? "en")
         .filter(
           (region) => properties.regionId?.() === undefined || region.id === properties.regionId(),
@@ -171,10 +179,8 @@ function StarterRegionCard(
   // Text floors half-column offsets; flex centering rounds them up for boxes.
   const gridInset = () =>
     Math.max(0, Math.floor((rowWidth() - (cellWidth() * 3 + columnGap() * 2)) / 2))
-  const hoverBackground = () =>
-    typeof properties.hoverBackground === "function"
-      ? properties.hoverBackground()
-      : properties.hoverBackground
+  const surface = () => properties.theme?.() ?? fallbackPokecodeTheme.current
+  const hoverBackground = () => surface().highlight
   const starters = () => startersForRegion(properties.region.id, properties.language?.() ?? "en")
   return (
     <box
@@ -186,7 +192,7 @@ function StarterRegionCard(
       gap={1}
       padding={1}
     >
-      <text>{properties.region.name}</text>
+      <text fg={surface().accent}>{properties.region.name}</text>
       <box
         flexDirection="row"
         width="100%"
@@ -240,6 +246,7 @@ function StarterRegionCard(
                   language={properties.language}
                   resolve={properties.resolveSprite}
                   protocol={properties.imageProtocol}
+                  theme={surface}
                   shiny={false}
                   gender="male"
                   speciesId={starter.speciesId}
@@ -256,8 +263,10 @@ function StarterRegionCard(
 export function LocationProgress(properties: {
   readonly state: () => GameState
   readonly onTravel: (locationId: string) => Promise<void>
+  readonly theme?: (() => PokecodeSurface) | undefined
 }) {
   const state = properties.state
+  const surface = () => properties.theme?.() ?? fallbackPokecodeTheme.current
   const [hoveredTravel, setHoveredTravel] = createSignal(false)
   const currentLocation = () =>
     state().exploration?.locations.find((location) => location.id === state().location)?.name ??
@@ -284,11 +293,13 @@ export function LocationProgress(properties: {
   }
   return (
     <box flexDirection="column">
-      <text>{`${uiCopy(state().locale).location}: ${currentLocation()} (${currentRegion()})`}</text>
+      <text
+        fg={surface().text}
+      >{`${uiCopy(state().locale).location}: ${currentLocation()} (${currentRegion()})`}</text>
       <box flexDirection="row" width="100%">
-        <text>{`${uiCopy(state().locale).nextLocation}: `}</text>
+        <text fg={surface().muted}>{`${uiCopy(state().locale).nextLocation}: `}</text>
         {travelTarget() === null ? (
-          <text>{`${percentage().toFixed(2)}%`}</text>
+          <text fg={surface().muted}>{`${percentage().toFixed(2)}%`}</text>
         ) : (
           <PokecodeActionButton
             hovered={hoveredTravel}
@@ -296,6 +307,7 @@ export function LocationProgress(properties: {
             onActivate={travelToUnlockedLocation}
             onHover={() => setHoveredTravel(true)}
             onLeave={() => setHoveredTravel(false)}
+            theme={properties.theme}
             tone="success"
           />
         )}
@@ -309,6 +321,7 @@ export function PartyGrid(properties: {
   readonly party: () => GameState["party"]
   readonly resolveSprite: SpriteResolver
   readonly imageProtocol: ImageProtocolAccessor
+  readonly theme?: (() => PokecodeSurface) | undefined
 }) {
   const occupiedSlots = () => properties.party().filter((slot) => slot.pokemon !== null)
   return (
@@ -317,18 +330,21 @@ export function PartyGrid(properties: {
         language={properties.language}
         resolveSprite={properties.resolveSprite}
         imageProtocol={properties.imageProtocol}
+        theme={properties.theme}
         slots={() => occupiedSlots().slice(0, 2)}
       />
       <PartyRow
         language={properties.language}
         resolveSprite={properties.resolveSprite}
         imageProtocol={properties.imageProtocol}
+        theme={properties.theme}
         slots={() => occupiedSlots().slice(2, 4)}
       />
       <PartyRow
         language={properties.language}
         resolveSprite={properties.resolveSprite}
         imageProtocol={properties.imageProtocol}
+        theme={properties.theme}
         slots={() => occupiedSlots().slice(4, 6)}
       />
     </box>
@@ -340,7 +356,9 @@ function PartyRow(properties: {
   readonly slots: () => GameState["party"]
   readonly resolveSprite: SpriteResolver
   readonly imageProtocol: ImageProtocolAccessor
+  readonly theme?: (() => PokecodeSurface) | undefined
 }) {
+  const surface = () => properties.theme?.() ?? fallbackPokecodeTheme.current
   return (
     <box flexDirection="row" gap={1}>
       {properties.slots().map((slot) => (
@@ -351,14 +369,15 @@ function PartyRow(properties: {
                 language={properties.language}
                 resolve={properties.resolveSprite}
                 protocol={properties.imageProtocol}
+                theme={surface}
                 shiny={slot.pokemon.shiny}
                 gender={slot.pokemon.gender}
                 speciesId={slot.pokemon.speciesId}
               />
-              <text>
+              <text fg={surface().text}>
                 {`${slot.pokemon.name} ${slot.pokemon.gender === "male" ? "♂" : slot.pokemon.gender === "female" ? "♀" : "—"}`}
               </text>
-              <text>{`Lv.${slot.pokemon.level}`}</text>
+              <text fg={surface().muted}>{`Lv.${slot.pokemon.level}`}</text>
             </>
           )}
         </box>
