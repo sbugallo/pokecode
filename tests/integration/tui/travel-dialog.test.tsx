@@ -37,6 +37,7 @@ describe("location travel dialog", () => {
             traveled.push(locationId)
           }}
           resolveSprite={async () => ({ kind: "placeholder" })}
+          imageProtocol={() => "auto"}
         />
       ),
       { width: 100, height: 30 },
@@ -85,6 +86,7 @@ describe("location travel dialog", () => {
               requestedSprites.push(speciesId)
               return { kind: "placeholder" }
             }}
+            imageProtocol={() => "auto"}
           />
         ),
         { width: 100, height: 30 },

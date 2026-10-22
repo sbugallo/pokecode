@@ -10,6 +10,7 @@ import {
 import { regions } from "../../../../domain/content/catalog.js"
 import { uiCopy } from "../../../presentation/ui-copy.js"
 import type { SpriteResolver } from "../../../sprites/contracts.js"
+import type { ImageProtocolAccessor } from "../components/image-protocol.js"
 import { MoveList } from "../components/move-list.js"
 import { Sprite } from "../components/sprite.js"
 
@@ -18,6 +19,7 @@ export function PendingChoiceCard(properties: {
   readonly onResolveMove: (choiceId: string, selectedMoveId: string) => Promise<void>
   readonly onResolveEvolution: (choiceId: string, selectedSpeciesId: string) => Promise<void>
   readonly resolveSprite: SpriteResolver
+  readonly imageProtocol: ImageProtocolAccessor
   readonly language: () => GameState["locale"]
 }) {
   const choice = () => properties.state().pendingChoices[0]
@@ -32,6 +34,7 @@ export function PendingChoiceCard(properties: {
               choicePokemon={() => properties.state().choicePokemon}
               onResolve={properties.onResolveMove}
               resolveSprite={properties.resolveSprite}
+              imageProtocol={properties.imageProtocol}
               language={properties.language}
             />
           </Match>
@@ -41,6 +44,7 @@ export function PendingChoiceCard(properties: {
               party={() => properties.state().party}
               choicePokemon={() => properties.state().choicePokemon}
               resolveSprite={properties.resolveSprite}
+              imageProtocol={properties.imageProtocol}
               language={properties.language}
               onResolve={properties.onResolveEvolution}
             />
@@ -57,6 +61,7 @@ export function MoveChoiceCard(properties: {
   readonly choicePokemon: () => GameState["choicePokemon"]
   readonly onResolve: (choiceId: string, selectedMoveId: string) => Promise<void>
   readonly resolveSprite: SpriteResolver
+  readonly imageProtocol: ImageProtocolAccessor
   readonly language?: (() => GameState["locale"]) | undefined
 }) {
   const choice = properties.choice()
@@ -88,6 +93,7 @@ export function MoveChoiceCard(properties: {
       <Sprite
         language={properties.language}
         resolve={properties.resolveSprite}
+        protocol={properties.imageProtocol}
         shiny={pokemon.shiny}
         gender={pokemon.gender}
         speciesId={pokemon.speciesId}
@@ -113,6 +119,7 @@ export function EvolutionChoiceCard(properties: {
   readonly party: () => GameState["party"]
   readonly choicePokemon: () => GameState["choicePokemon"]
   readonly resolveSprite: SpriteResolver
+  readonly imageProtocol: ImageProtocolAccessor
   readonly language: () => GameState["locale"]
   readonly onResolve: (choiceId: string, selectedSpeciesId: string) => Promise<void>
 }) {
@@ -138,6 +145,7 @@ export function EvolutionChoiceCard(properties: {
       <Sprite
         language={properties.language}
         resolve={properties.resolveSprite}
+        protocol={properties.imageProtocol}
         shiny={pokemon.shiny}
         gender={pokemon.gender}
         speciesId={pokemon.speciesId}
@@ -153,6 +161,7 @@ export function EvolutionChoiceCard(properties: {
             onLeave={() => setHoveredOption(null)}
             onResolve={() => properties.onResolve(choice.id, option.speciesId)}
             resolveSprite={properties.resolveSprite}
+            imageProtocol={properties.imageProtocol}
             language={properties.language}
           />
         ))}
@@ -169,6 +178,7 @@ function EvolutionOptionCard(properties: {
   readonly onLeave: () => void
   readonly onResolve: () => Promise<void>
   readonly resolveSprite: SpriteResolver
+  readonly imageProtocol: ImageProtocolAccessor
   readonly language: () => GameState["locale"]
 }) {
   return (
@@ -198,6 +208,7 @@ function EvolutionOptionCard(properties: {
           compactFallback
           language={properties.language}
           resolve={properties.resolveSprite}
+          protocol={properties.imageProtocol}
           shiny={properties.pokemon.shiny}
           gender={properties.pokemon.gender}
           speciesId={properties.option.speciesId}

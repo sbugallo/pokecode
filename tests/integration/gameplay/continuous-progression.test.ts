@@ -6,10 +6,8 @@ import { createGameFixture, withGameDatabase } from "../../support/game.js"
 
 const continuousConfig: GameplayConfig = {
   pauseOnPendingChoice: false,
-  xpTokensPerPoint: 1_000,
   encounterMinimumTokens: 10,
   encounterMaximumTokens: 10,
-  locationUnlockTokens: 2_160_000,
   locationUnlockBaseTokens: 100_000_000,
   locationUnlockExponent: 1,
   locationUnlockRegionExponent: 0,

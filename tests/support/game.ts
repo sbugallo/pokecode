@@ -25,10 +25,8 @@ export function withGameDatabase<Result>(
 
 export const usageTestConfig: GameplayConfig = {
   pauseOnPendingChoice: true,
-  xpTokensPerPoint: 1_000,
   encounterMinimumTokens: 100_000,
   encounterMaximumTokens: 100_000,
-  locationUnlockTokens: 2_160_000,
   locationUnlockBaseTokens: 100_000,
   locationUnlockExponent: 1,
   locationUnlockRegionExponent: 0,

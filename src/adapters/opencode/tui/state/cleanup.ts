@@ -5,6 +5,7 @@ export function createTuiCleanup(dependencies: {
   readonly unsubscribe?: () => void
   readonly unregisterSlot?: () => void
   readonly disposeClipboard?: () => void | Promise<void>
+  readonly disposeImageProtocol?: () => void
 }) {
   let cleanupPromise: Promise<void> | undefined
 
@@ -32,6 +33,7 @@ export function createTuiCleanup(dependencies: {
     }
     runSynchronousDisposer(dependencies.unsubscribe)
     runSynchronousDisposer(dependencies.unregisterSlot)
+    runSynchronousDisposer(dependencies.disposeImageProtocol)
 
     const finish = (): void => {
       if (failures.length === 1) throw failures[0]

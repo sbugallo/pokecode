@@ -5,6 +5,7 @@ import type { Language } from "../../../../domain/shared/language.js"
 import { uiCopy } from "../../../presentation/ui-copy.js"
 import type { SpriteResolver } from "../../../sprites/contracts.js"
 import { bold, PokecodeActionButton } from "../components/action-button.js"
+import type { ImageProtocolAccessor } from "../components/image-protocol.js"
 import { Sprite } from "../components/sprite.js"
 
 type TravelLocation = {
@@ -30,6 +31,7 @@ export function LocationTravelDialog(properties: {
   readonly onTravel: (locationId: string) => Promise<void>
   readonly pokemonByLocation: Readonly<Record<string, readonly LocationPokemonPreview[]>>
   readonly resolveSprite: SpriteResolver
+  readonly imageProtocol: ImageProtocolAccessor
 }) {
   const copy = () => uiCopy(properties.language)
   const initialLocationId = properties.locations.some(
@@ -213,6 +215,7 @@ export function LocationTravelDialog(properties: {
                               height={3}
                               language={() => properties.language}
                               resolve={properties.resolveSprite}
+                              protocol={properties.imageProtocol}
                               shiny={false}
                               gender="genderless"
                               speciesId={pokemon.status === "unknown" ? "0" : pokemon.speciesId}

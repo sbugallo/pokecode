@@ -3,6 +3,7 @@ import { createSignal } from "solid-js"
 import type { PokemonCollection } from "../../../../application/contracts/game.js"
 import type { SpriteResolver } from "../../../sprites/contracts.js"
 import type { createPokemonTuiClient } from "../client.js"
+import type { ImageProtocolAccessor } from "../components/image-protocol.js"
 import type { createTuiStateCoordinator } from "../state/coordinator.js"
 import { PokemonPcDialog } from "./dialog.js"
 
@@ -26,6 +27,7 @@ export function createPcAction(dependencies: {
   readonly dialog: Pick<Context["ui"]["dialog"], "show" | "set" | "clear">
   readonly theme: { readonly base: () => string; readonly muted: () => string }
   readonly resolveSprite: SpriteResolver
+  readonly imageProtocol: ImageProtocolAccessor
 }) {
   const onConfirm = createPartyReplacementConfirmation({
     rpc: dependencies.rpc,
@@ -64,6 +66,7 @@ export function createPcAction(dependencies: {
         textColor={dependencies.theme.base}
         mutedColor={dependencies.theme.muted}
         resolveSprite={dependencies.resolveSprite}
+        imageProtocol={dependencies.imageProtocol}
         onClose={() => {
           if (!dependencies.state.isDisposed()) dependencies.dialog.clear()
         }}

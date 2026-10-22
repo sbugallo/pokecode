@@ -45,12 +45,8 @@ export type StarterChoiceResult = z.infer<typeof starterChoiceResultSchema>
 
 export const gameplayConfigSchema = z.object({
   pauseOnPendingChoice: z.boolean().default(true),
-  /** @deprecated Experience now accrues at a fixed 1 point per 1000 tokens; ignored. */
-  xpTokensPerPoint: z.number().int().positive().default(1_000),
   encounterMinimumTokens: z.number().int().positive().default(200_000),
   encounterMaximumTokens: z.number().int().positive().default(400_000),
-  /** @deprecated Replaced by the weighted unlock curve below; ignored. */
-  locationUnlockTokens: z.number().int().positive().default(2_160_000),
   locationUnlockBaseTokens: z.number().int().positive().default(4_214_000),
   locationUnlockExponent: z.number().positive().default(2.64),
   locationUnlockRegionExponent: z.number().default(-1.72),

@@ -39,10 +39,8 @@ test("gameplay thresholds project the current configuration while progress survi
   // GIVEN
   const initialConfig: GameplayConfig = {
     pauseOnPendingChoice: true,
-    xpTokensPerPoint: 1_000,
     encounterMinimumTokens: 100_000,
     encounterMaximumTokens: 100_000,
-    locationUnlockTokens: 2_160_000,
     locationUnlockBaseTokens: 100,
     locationUnlockExponent: 1,
     locationUnlockRegionExponent: 0,
@@ -123,10 +121,8 @@ test("pending-choice projection preserves choice priority and timestamp order", 
   const fixture = createGameFixture({
     config: {
       pauseOnPendingChoice: true,
-      xpTokensPerPoint: 1_000,
       encounterMinimumTokens: 1,
       encounterMaximumTokens: 1,
-      locationUnlockTokens: 2_160_000,
       locationUnlockBaseTokens: 100_000,
       locationUnlockExponent: 1,
       locationUnlockRegionExponent: 0,
@@ -229,10 +225,8 @@ test("Dex projection tracks seen and caught status for party and PC Pokémon and
   const fixture = createGameFixture({
     config: {
       pauseOnPendingChoice: true,
-      xpTokensPerPoint: 1_000,
       encounterMinimumTokens: 1,
       encounterMaximumTokens: 1,
-      locationUnlockTokens: 2_160_000,
       locationUnlockBaseTokens: 100_000,
       locationUnlockExponent: 1,
       locationUnlockRegionExponent: 0,

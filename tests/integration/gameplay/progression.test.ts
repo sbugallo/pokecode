@@ -6,10 +6,8 @@ import { createGameFixture, withGameDatabase as withDatabase } from "../../suppo
 
 const config = {
   pauseOnPendingChoice: true,
-  xpTokensPerPoint: 1_000,
   encounterMinimumTokens: 1_000_000_000,
   encounterMaximumTokens: 1_000_000_000,
-  locationUnlockTokens: 2_160_000,
   locationUnlockBaseTokens: 1_000_000_000,
   locationUnlockExponent: 1,
   locationUnlockRegionExponent: 0,

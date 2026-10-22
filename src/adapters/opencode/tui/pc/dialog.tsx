@@ -13,6 +13,7 @@ import type { PokemonInstance } from "../../../../domain/pokemon/model.js"
 import type { Language } from "../../../../domain/shared/language.js"
 import { pcCopy } from "../../../presentation/pc-copy.js"
 import type { SpriteResolver } from "../../../sprites/contracts.js"
+import type { ImageProtocolAccessor } from "../components/image-protocol.js"
 import { createOwnerGuard } from "../components/owner.js"
 import { PcDetails } from "./details.js"
 import "../controls/native.js"
@@ -30,6 +31,7 @@ export function PokemonPcDialog(properties: {
   readonly onRename: (pokemonId: string, name: string) => Promise<PokemonManagementResult["kind"]>
   readonly onRelease: (pokemonId: string) => Promise<PokemonManagementResult["kind"]>
   readonly resolveSprite: SpriteResolver
+  readonly imageProtocol: ImageProtocolAccessor
 }) {
   const dimensions = useTerminalDimensions()
   const height = () => Math.min(44, Math.max(1, dimensions().height - 6))
@@ -270,6 +272,7 @@ export function PokemonPcDialog(properties: {
                 language={properties.language}
                 textColor={textColor()}
                 resolveSprite={properties.resolveSprite}
+                imageProtocol={properties.imageProtocol}
               />
             )}
           </Show>
