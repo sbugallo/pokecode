@@ -231,10 +231,8 @@ describe("usage accounting gameplay", () => {
     const fixture = createGameFixture({
       config: {
         pauseOnPendingChoice: true,
-        xpTokensPerPoint: 1_000,
         encounterMinimumTokens: 1,
         encounterMaximumTokens: 1,
-        locationUnlockTokens: 2_160_000,
         locationUnlockBaseTokens: 1,
         locationUnlockExponent: 1,
         locationUnlockRegionExponent: 0,

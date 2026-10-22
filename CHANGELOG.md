@@ -11,8 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Replaced the flat location-unlock cost with a region-normalized curve fitted to gym-leader and
   champion ace levels, capped at the champion approach for postgame and DLC locations. Champion
-  locations are stored in the regional catalogs, and XP remains fixed at 1 point per 1,000 tokens.
-  The old XP-conversion and flat unlock-cost options remain parseable but are deprecated and ignored.
+  locations are stored in the regional catalogs, and XP is fixed at 1 point per 1,000 tokens. The
+  old XP-conversion and flat unlock-cost options were removed; configurations that still pass them
+  are ignored.
 
 ## [0.2.1] - 2026-10-20
 

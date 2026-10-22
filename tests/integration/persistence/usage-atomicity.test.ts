@@ -80,10 +80,8 @@ describe("usage transaction atomicity", () => {
     const fixture = createGameFixture({
       config: {
         pauseOnPendingChoice: true,
-        xpTokensPerPoint: 1_000,
         encounterMinimumTokens: 100_000_000,
         encounterMaximumTokens: 100_000_000,
-        locationUnlockTokens: 2_160_000,
         locationUnlockBaseTokens: 100_000_000,
         locationUnlockExponent: 1,
         locationUnlockRegionExponent: 0,
@@ -126,10 +124,8 @@ describe("usage transaction atomicity", () => {
     const fixture = createGameFixture({
       config: {
         pauseOnPendingChoice: true,
-        xpTokensPerPoint: 1_000,
         encounterMinimumTokens: 1,
         encounterMaximumTokens: 1,
-        locationUnlockTokens: 2_160_000,
         locationUnlockBaseTokens: 100_000,
         locationUnlockExponent: 1,
         locationUnlockRegionExponent: 0,
@@ -180,10 +176,8 @@ describe("usage transaction atomicity", () => {
     const fixture = createGameFixture({
       config: {
         pauseOnPendingChoice: true,
-        xpTokensPerPoint: 1_000,
         encounterMinimumTokens: 1,
         encounterMaximumTokens: 1,
-        locationUnlockTokens: 2_160_000,
         locationUnlockBaseTokens: 100_000,
         locationUnlockExponent: 1,
         locationUnlockRegionExponent: 0,

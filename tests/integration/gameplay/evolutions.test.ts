@@ -8,10 +8,8 @@ import { createGameFixture, withGameDatabase } from "../../support/game.js"
 
 const config = {
   pauseOnPendingChoice: true,
-  xpTokensPerPoint: 1_000,
   encounterMinimumTokens: 10_000_000_000,
   encounterMaximumTokens: 10_000_000_000,
-  locationUnlockTokens: 2_160_000,
   locationUnlockBaseTokens: 10_000_000_000,
   locationUnlockExponent: 1,
   locationUnlockRegionExponent: 0,
