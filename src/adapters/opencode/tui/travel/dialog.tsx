@@ -7,6 +7,7 @@ import type { SpriteResolver } from "../../../sprites/contracts.js"
 import { bold, PokecodeActionButton } from "../components/action-button.js"
 import type { ImageProtocolAccessor } from "../components/image-protocol.js"
 import { Sprite } from "../components/sprite.js"
+import { fallbackPokecodeTheme, type PokecodeTheme } from "../theme.js"
 
 type TravelLocation = {
   readonly id: string
@@ -32,7 +33,9 @@ export function LocationTravelDialog(properties: {
   readonly pokemonByLocation: Readonly<Record<string, readonly LocationPokemonPreview[]>>
   readonly resolveSprite: SpriteResolver
   readonly imageProtocol: ImageProtocolAccessor
+  readonly theme?: (() => PokecodeTheme) | undefined
 }) {
+  const surface = () => properties.theme?.().dialog ?? fallbackPokecodeTheme.dialog
   const copy = () => uiCopy(properties.language)
   const initialLocationId = properties.locations.some(
     (location) => location.id === properties.currentLocationId,
@@ -106,9 +109,9 @@ export function LocationTravelDialog(properties: {
 
   return (
     <box
-      backgroundColor="#111827"
+      backgroundColor={surface().background}
       border
-      borderColor="#4b5563"
+      borderColor={surface().border}
       borderStyle="rounded"
       flexDirection="column"
       gap={1}
@@ -117,9 +120,11 @@ export function LocationTravelDialog(properties: {
       width="100%"
       height="100%"
     >
-      <text attributes={bold}>{copy().locationsDialog}</text>
+      <text attributes={bold} fg={surface().accent}>
+        {copy().locationsDialog}
+      </text>
       <box
-        backgroundColor="#111827"
+        backgroundColor={surface().background}
         flexDirection="row"
         flexGrow={1}
         gap={1}
@@ -127,7 +132,7 @@ export function LocationTravelDialog(properties: {
         width="100%"
       >
         <scrollbox
-          backgroundColor="#111827"
+          backgroundColor={surface().background}
           contentOptions={{ flexDirection: "column" }}
           flexShrink={0}
           height="100%"
@@ -143,7 +148,9 @@ export function LocationTravelDialog(properties: {
             {(region) => (
               <box flexDirection="column" flexShrink={0}>
                 <Show when={region.name}>
-                  <text attributes={bold}>{region.name}</text>
+                  <text attributes={bold} fg={surface().accent}>
+                    {region.name}
+                  </text>
                 </Show>
                 <For each={region.locations}>
                   {(location) => (
@@ -155,7 +162,11 @@ export function LocationTravelDialog(properties: {
                       type="button"
                       onMouseUp={() => selectLocation(location.id)}
                     >
-                      <text fg={selectedLocationId() === location.id ? "#22c55e" : "#d1d5db"}>
+                      <text
+                        fg={
+                          selectedLocationId() === location.id ? surface().accent : surface().text
+                        }
+                      >
                         {`${selectedLocationId() === location.id ? "› " : "  "}${location.name}`}
                       </text>
                     </button>
@@ -166,16 +177,18 @@ export function LocationTravelDialog(properties: {
           </For>
         </scrollbox>
         <box
-          backgroundColor="#111827"
+          backgroundColor={surface().background}
           flexDirection="column"
           flexGrow={1}
           minWidth={0}
           minHeight={0}
           shouldFill
         >
-          <text attributes={bold}>{selectedLocation()?.name ?? copy().unknown}</text>
+          <text attributes={bold} fg={surface().accent}>
+            {selectedLocation()?.name ?? copy().unknown}
+          </text>
           <scrollbox
-            backgroundColor="#111827"
+            backgroundColor={surface().background}
             contentOptions={{ flexDirection: "column" }}
             flexGrow={1}
             flexShrink={1}
@@ -190,7 +203,7 @@ export function LocationTravelDialog(properties: {
           >
             <Show
               when={pokemonRows().length > 0}
-              fallback={<text>{copy().noLocationPokemon}</text>}
+              fallback={<text fg={surface().muted}>{copy().noLocationPokemon}</text>}
             >
               <For each={pokemonRows()}>
                 {(row) => (
@@ -199,7 +212,7 @@ export function LocationTravelDialog(properties: {
                       {(pokemon) => (
                         <box
                           alignItems="center"
-                          backgroundColor="#111827"
+                          backgroundColor={surface().background}
                           flexBasis={0}
                           flexDirection="column"
                           flexGrow={1}
@@ -216,6 +229,7 @@ export function LocationTravelDialog(properties: {
                               language={() => properties.language}
                               resolve={properties.resolveSprite}
                               protocol={properties.imageProtocol}
+                              theme={surface}
                               shiny={false}
                               gender="genderless"
                               speciesId={pokemon.status === "unknown" ? "0" : pokemon.speciesId}
@@ -232,15 +246,19 @@ export function LocationTravelDialog(properties: {
                             <text
                               fg={
                                 pokemon.status === "caught"
-                                  ? "#22c55e"
+                                  ? surface().success
                                   : pokemon.status === "seen"
-                                    ? "#9ca3af"
-                                    : "#ffffff"
+                                    ? surface().muted
+                                    : surface().text
                               }
                             >
                               {pokemon.status === "unknown" ? "  " : "● "}
                             </text>
-                            <text>{pokemon.status === "unknown" ? "???" : pokemon.name}</text>
+                            <text
+                              fg={pokemon.status === "unknown" ? surface().muted : surface().text}
+                            >
+                              {pokemon.status === "unknown" ? "???" : pokemon.name}
+                            </text>
                           </box>
                         </box>
                       )}
@@ -259,6 +277,7 @@ export function LocationTravelDialog(properties: {
           onActivate={async () => properties.onClose()}
           onHover={() => {}}
           onLeave={() => {}}
+          theme={surface}
           tone="secondary"
         />
         <PokecodeActionButton
@@ -267,6 +286,7 @@ export function LocationTravelDialog(properties: {
           onActivate={async () => travel()}
           onHover={() => {}}
           onLeave={() => {}}
+          theme={surface}
           tone="success"
         />
       </box>

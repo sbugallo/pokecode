@@ -5,6 +5,7 @@ import type { SpriteResolver } from "../../../sprites/contracts.js"
 import type { createPokemonTuiClient } from "../client.js"
 import type { ImageProtocolAccessor } from "../components/image-protocol.js"
 import type { createTuiStateCoordinator } from "../state/coordinator.js"
+import type { PokecodeTheme } from "../theme.js"
 import { PokemonPcDialog } from "./dialog.js"
 
 type TuiClient = ReturnType<typeof createPokemonTuiClient>
@@ -25,7 +26,7 @@ export function createPcAction(dependencies: {
   readonly rpc: TuiClient
   readonly state: TuiState
   readonly dialog: Pick<Context["ui"]["dialog"], "show" | "set" | "clear">
-  readonly theme: { readonly base: () => string; readonly muted: () => string }
+  readonly theme: () => PokecodeTheme
   readonly resolveSprite: SpriteResolver
   readonly imageProtocol: ImageProtocolAccessor
 }) {
@@ -63,8 +64,7 @@ export function createPcAction(dependencies: {
         pokemon={pokemon()}
         partyIds={partyIds}
         language={dependencies.state.state().locale}
-        textColor={dependencies.theme.base}
-        mutedColor={dependencies.theme.muted}
+        theme={dependencies.theme}
         resolveSprite={dependencies.resolveSprite}
         imageProtocol={dependencies.imageProtocol}
         onClose={() => {

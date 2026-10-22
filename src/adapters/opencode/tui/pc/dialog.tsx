@@ -6,7 +6,6 @@ import {
   type ScrollBoxRenderable,
 } from "@opentui/core"
 import { useKeyboard, useTerminalDimensions } from "@opentui/solid"
-import type { Accessor } from "solid-js"
 import { createSignal, For, Show } from "solid-js"
 import type { PokemonManagementResult } from "../../../../application/contracts/game.js"
 import type { PokemonInstance } from "../../../../domain/pokemon/model.js"
@@ -15,6 +14,7 @@ import { pcCopy } from "../../../presentation/pc-copy.js"
 import type { SpriteResolver } from "../../../sprites/contracts.js"
 import type { ImageProtocolAccessor } from "../components/image-protocol.js"
 import { createOwnerGuard } from "../components/owner.js"
+import { fallbackPokecodeTheme, type PokecodeTheme } from "../theme.js"
 import { PcDetails } from "./details.js"
 import "../controls/native.js"
 
@@ -24,8 +24,7 @@ export function PokemonPcDialog(properties: {
   readonly pokemon: readonly PokemonInstance[]
   readonly partyIds: readonly string[]
   readonly language: Language
-  readonly textColor: string | Accessor<string>
-  readonly mutedColor: string | Accessor<string>
+  readonly theme?: (() => PokecodeTheme) | undefined
   readonly onClose: () => void
   readonly onConfirm: (pokemonIds: readonly string[]) => Promise<boolean>
   readonly onRename: (pokemonId: string, name: string) => Promise<PokemonManagementResult["kind"]>
@@ -43,10 +42,7 @@ export function PokemonPcDialog(properties: {
   const [name, setName] = createSignal("")
   const isOwned = createOwnerGuard()
   const copy = () => pcCopy(properties.language)
-  const textColor = () =>
-    typeof properties.textColor === "function" ? properties.textColor() : properties.textColor
-  const mutedColor = () =>
-    typeof properties.mutedColor === "function" ? properties.mutedColor() : properties.mutedColor
+  const surface = () => properties.theme?.().dialog ?? fallbackPokecodeTheme.dialog
   const inspected = () => properties.pokemon[index()]
   let list: ScrollBoxRenderable | undefined
   let details: ScrollBoxRenderable | undefined
@@ -191,7 +187,7 @@ export function PokemonPcDialog(properties: {
 
   return (
     <box flexDirection="column" height={height()} paddingLeft={1} paddingRight={1} width="100%">
-      <text attributes={bold} fg={textColor()} flexShrink={0}>
+      <text attributes={bold} fg={surface().text} flexShrink={0}>
         {`${copy().title} (${selected().length}/6)`}
       </text>
       <box flexDirection="row" flexGrow={1} minHeight={0} gap={1} width="100%">
@@ -226,28 +222,28 @@ export function PokemonPcDialog(properties: {
                       toggle(pokemon.id)
                     }}
                   >
-                    <text fg={selected().includes(pokemon.id) ? "#22c55e" : mutedColor()}>
+                    <text
+                      fg={selected().includes(pokemon.id) ? surface().success : surface().muted}
+                    >
                       {selected().includes(pokemon.id) ? "● " : "○ "}
                     </text>
                   </button>
                   <button
                     type="button"
                     flexGrow={1}
-                    backgroundColor={index() === row() ? "#2563eb" : undefined}
+                    backgroundColor={index() === row() ? surface().highlight : undefined}
                     onMouseUp={(event: MouseEvent) => {
                       if (event.button === MouseButton.LEFT && !busy() && mode() === "browse")
                         inspect(row())
                     }}
                   >
-                    <text fg={index() === row() ? "#ffffff" : textColor()}>
-                      {`${pokemon.name} Lv.${pokemon.level}`}
-                    </text>
+                    <text fg={surface().text}>{`${pokemon.name} Lv.${pokemon.level}`}</text>
                   </button>
                 </box>
               )}
             </For>
             <Show when={properties.pokemon.length === 0}>
-              <text>{copy().empty}</text>
+              <text fg={surface().muted}>{copy().empty}</text>
             </Show>
           </scrollbox>
         </box>
@@ -270,7 +266,7 @@ export function PokemonPcDialog(properties: {
               <PcDetails
                 pokemon={pokemon}
                 language={properties.language}
-                textColor={textColor()}
+                theme={surface}
                 resolveSprite={properties.resolveSprite}
                 imageProtocol={properties.imageProtocol}
               />
@@ -279,7 +275,7 @@ export function PokemonPcDialog(properties: {
         </scrollbox>
       </box>
       <Show when={mode() === "rename"}>
-        <text fg={textColor()} flexShrink={0}>
+        <text fg={surface().text} flexShrink={0}>
           {copy().renamePrompt}
         </text>
         <input
@@ -293,19 +289,19 @@ export function PokemonPcDialog(properties: {
       </Show>
       <Show when={mode() === "release"}>
         <text
-          fg={textColor()}
+          fg={surface().text}
           flexShrink={0}
         >{`${inspected()?.name ?? ""}: ${copy().releasePrompt}`}</text>
       </Show>
       <Show when={feedback()}>
-        <text fg={mutedColor()} flexShrink={0}>
+        <text fg={surface().muted} flexShrink={0}>
           {feedback()}
         </text>
       </Show>
       <Show
         when={mode() === "browse"}
         fallback={
-          <text fg={mutedColor()} flexShrink={0}>
+          <text fg={surface().muted} flexShrink={0}>
             {copy().editActions}
           </text>
         }
@@ -317,7 +313,7 @@ export function PokemonPcDialog(properties: {
               if (event.button === MouseButton.LEFT) begin("rename")
             }}
           >
-            <text fg={mutedColor()}>{`R: ${copy().rename}`}</text>
+            <text fg={surface().muted}>{`R: ${copy().rename}`}</text>
           </button>
           <button
             type="button"
@@ -325,13 +321,13 @@ export function PokemonPcDialog(properties: {
               if (event.button === MouseButton.LEFT) begin("release")
             }}
           >
-            <text fg={mutedColor()}>{`F: ${copy().release}`}</text>
+            <text fg={surface().muted}>{`F: ${copy().release}`}</text>
           </button>
         </box>
-        <text fg={mutedColor()} flexShrink={0}>
+        <text fg={surface().muted} flexShrink={0}>
           {copy().navigation}
         </text>
-        <text fg={mutedColor()} flexShrink={0}>
+        <text fg={surface().muted} flexShrink={0}>
           {copy().actions}
         </text>
       </Show>

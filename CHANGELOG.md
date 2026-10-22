@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- TUI colors now come from the active OpenCode theme instead of hardcoded hex values, so plain text,
+  the sidebar, buttons, PC, travel, and Pokédex dialogs follow the user's theme and update
+  immediately when the host theme changes.
+
 ## [0.3.0] - 2026-10-22
 
 ### Changed

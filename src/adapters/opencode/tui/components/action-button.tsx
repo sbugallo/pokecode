@@ -1,8 +1,9 @@
 import { createTextAttributes } from "@opentui/core"
+import { fallbackPokecodeTheme, type PokecodeSurface } from "../theme.js"
 
 export const bold = createTextAttributes({ bold: true })
 
-type ActionTone = "primary" | "secondary" | "success"
+export type ActionTone = "primary" | "secondary" | "success"
 
 export function PokecodeActionButton(properties: {
   readonly hovered: () => boolean
@@ -10,17 +11,26 @@ export function PokecodeActionButton(properties: {
   readonly onActivate: () => Promise<void>
   readonly onHover: () => void
   readonly onLeave: () => void
+  readonly theme?: (() => PokecodeSurface) | undefined
   readonly tone: ActionTone
 }) {
-  const colors = {
-    primary: { base: "#2563eb", hovered: "#1d4ed8" },
-    secondary: { base: "#6b7280", hovered: "#4b5563" },
-    success: { base: "#16a34a", hovered: "#15803d" },
-  }[properties.tone]
+  const surface = () => properties.theme?.() ?? fallbackPokecodeTheme.current
+  const colors = () => {
+    const action = properties.tone === "secondary" ? surface().secondary : surface().primary
+    return {
+      background: properties.hovered() ? action.backgroundHovered : action.background,
+      label:
+        properties.tone === "success"
+          ? surface().success
+          : properties.hovered()
+            ? action.labelHovered
+            : action.label,
+    }
+  }
   return (
     <button
       alignItems="center"
-      backgroundColor={properties.hovered() ? colors.hovered : colors.base}
+      backgroundColor={colors().background}
       focusable
       justifyContent="center"
       paddingLeft={2}
@@ -32,7 +42,7 @@ export function PokecodeActionButton(properties: {
       onMouseOver={properties.onHover}
       onMouseUp={() => void properties.onActivate()}
     >
-      <text fg="#ffffff">{properties.label}</text>
+      <text fg={colors().label}>{properties.label}</text>
     </button>
   )
 }

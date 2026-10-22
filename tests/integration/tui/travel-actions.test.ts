@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { createTuiStateCoordinator } from "../../../src/adapters/opencode/tui/state/coordinator.js"
 import { createLocationTravelAction } from "../../../src/adapters/opencode/tui/travel/actions.js"
-import { makeTuiClient, makeTuiState } from "../../support/tui.js"
+import { makePokecodeTheme, makeTuiClient, makeTuiState } from "../../support/tui.js"
 
 const activeExploration = {
   locations: [{ id: "pallet-town", name: "Pallet Town", unlocked: true, encounterless: true }],
@@ -37,6 +37,7 @@ describe("location travel action", () => {
       },
       resolveSprite: async () => ({ kind: "placeholder" }),
       imageProtocol: () => "auto",
+      theme: () => makePokecodeTheme(),
       travelToLocation: async () => {},
     })
 
@@ -70,6 +71,7 @@ describe("location travel action", () => {
       dialog: { show: () => calls.push("show"), set: () => calls.push("set"), clear: () => {} },
       resolveSprite: async () => ({ kind: "placeholder" }),
       imageProtocol: () => "auto",
+      theme: () => makePokecodeTheme(),
       travelToLocation: async () => {},
     })
     await action()

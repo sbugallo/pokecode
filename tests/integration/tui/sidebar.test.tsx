@@ -1,5 +1,4 @@
 import { describe, expect } from "bun:test"
-import { RGBA } from "@opentui/core"
 import { stringWidth } from "bun"
 import { createSignal } from "solid-js"
 import {
@@ -18,7 +17,14 @@ import {
 import { pokemonInstanceSchema } from "../../../src/domain/pokemon/model.js"
 import { evolutionAtLevel } from "../../../src/domain/progression/catalog.js"
 import { speciesIdSchema } from "../../../src/domain/shared/identifiers.js"
-import { makeTuiState, renderTui, testTui, testTuiEach } from "../../support/tui.js"
+import {
+  makePokecodeSurface,
+  makePokecodeTheme,
+  makeTuiState,
+  renderTui,
+  testTui,
+  testTuiEach,
+} from "../../support/tui.js"
 
 const placeholder = async () => ({ kind: "placeholder" as const })
 
@@ -45,7 +51,6 @@ describe("sidebar components", () => {
           hoveredEncounterAction={() => null}
           hoveredStarter={hoveredStarter}
           hoverStarter={setHoveredStarter}
-          mutedColor={() => "#808080"}
           onChooseStarter={async (region, species) => {
             selected.push([region, species])
           }}
@@ -60,7 +65,7 @@ describe("sidebar components", () => {
           }}
           imageProtocol={() => "auto"}
           setHoveredEncounterAction={() => {}}
-          starterHoverBackground="#808080"
+          theme={() => makePokecodeTheme()}
           state={state}
         />
       ),
@@ -176,7 +181,6 @@ describe("sidebar components", () => {
           hoveredEncounterAction={() => null}
           hoveredStarter={() => null}
           hoverStarter={() => {}}
-          mutedColor={() => "#808080"}
           onChooseStarter={async () => {}}
           onTravelRegion={async () => {}}
           onTravelLocation={async () => {}}
@@ -186,7 +190,7 @@ describe("sidebar components", () => {
           resolveSprite={placeholder}
           imageProtocol={() => "auto"}
           setHoveredEncounterAction={() => {}}
-          starterHoverBackground="#808080"
+          theme={() => makePokecodeTheme()}
           state={() =>
             makeTuiState({
               locale: "es",
@@ -217,6 +221,7 @@ describe("sidebar components", () => {
       `renders readable region choices with hover and keyboard feedback (${language}, ${width} columns)`,
     async ({ language, width, source, completed }) => {
       const traveled: string[] = []
+      const surface = makePokecodeSurface()
       const names = [
         "Kanto",
         "Johto",
@@ -238,6 +243,7 @@ describe("sidebar components", () => {
             })}
             language={() => language}
             visitedRegionIds={() => [source, "galar"]}
+            theme={() => surface}
             onTravel={async (regionId) => {
               traveled.push(regionId)
             }}
@@ -270,10 +276,10 @@ describe("sidebar components", () => {
           .captureSpans()
           .lines.flatMap((line) => line.spans)
           .find((span) => span.text.includes("Johto"))?.bg
-      expect(johtoBackground()).toEqual(RGBA.fromHex("#404040"))
+      expect(johtoBackground()).toEqual(surface.highlight)
       await rendered.mockMouse.moveTo(0, 0)
       await rendered.flush()
-      expect(johtoBackground()).not.toEqual(RGBA.fromHex("#404040"))
+      expect(johtoBackground()).not.toEqual(surface.highlight)
       await rendered.mockMouse.click(column, row)
       await rendered.flush()
       expect(traveled).toEqual(["johto"])
@@ -335,6 +341,7 @@ describe("sidebar components", () => {
       })
       const spriteRequests: unknown[][] = []
       const selected: string[][] = []
+      const surface = makePokecodeSurface()
       const rendered = await renderTui(
         () => (
           <PendingChoiceCard
@@ -349,6 +356,7 @@ describe("sidebar components", () => {
               return { kind: "placeholder" }
             }}
             imageProtocol={() => "auto"}
+            theme={() => surface}
           />
         ),
         { width: 34, height: 48 },
@@ -373,7 +381,7 @@ describe("sidebar components", () => {
           .captureSpans()
           .lines.flatMap((line) => line.spans)
           .find((span) => span.text.includes("Vaporeon"))?.bg,
-      ).toEqual(RGBA.fromHex("#404040"))
+      ).toEqual(surface.highlight)
       const row = lines.findIndex((line) => line.includes("Sylveon"))
       await rendered.mockMouse.click(lines[row]?.indexOf("Sylveon") ?? -1, row)
       await rendered.flush()
@@ -399,7 +407,7 @@ describe("sidebar components", () => {
           .captureSpans()
           .lines.flatMap((line) => line.spans)
           .find((span) => span.text.includes("Vaporeon"))?.bg,
-      ).toEqual(RGBA.fromHex("#404040"))
+      ).toEqual(surface.highlight)
       const preview = first.getChildren?.()[0]?.getChildren?.()[0]
       const label = first.getChildren?.()[1]?.getChildren?.()[0]
       const center = (node: FocusableNode | undefined) => (node?.x ?? 0) + (node?.width ?? 0) / 2
@@ -431,7 +439,6 @@ describe("sidebar components", () => {
           resolveSprite={placeholder}
           imageProtocol={() => "auto"}
           hovered={() => null}
-          hoverBackground="#808080"
           onChoose={async () => {}}
           onHover={() => {}}
         />
@@ -460,7 +467,6 @@ describe("sidebar components", () => {
           resolveSprite={placeholder}
           imageProtocol={() => "auto"}
           hovered={() => null}
-          hoverBackground="#808080"
           onChoose={async (regionId, speciesId) => {
             selected.push({ regionId, speciesId })
           }}
@@ -558,7 +564,6 @@ describe("sidebar components", () => {
         language: "en" as const,
         catchLabel: "Catch",
         runLabel: "Run",
-        caughtColor: "#22c55e",
       },
       {
         name: "Spanish shows localized encounter actions",
@@ -566,12 +571,12 @@ describe("sidebar components", () => {
         language: "es" as const,
         catchLabel: "Capturar",
         runLabel: "Huir",
-        caughtColor: "#808080",
       },
     ],
     ({ name }) => name,
-    async ({ caught, language, catchLabel, runLabel, caughtColor }) => {
+    async ({ caught, language, catchLabel, runLabel }) => {
       // GIVEN
+      const surface = makePokecodeSurface()
       const rendered = await renderTui(
         () => (
           <EncounterCard
@@ -588,7 +593,7 @@ describe("sidebar components", () => {
             })}
             hoveredAction={() => "catch"}
             language={() => language}
-            mutedColor={() => "#808080"}
+            theme={() => surface}
             onHover={() => {}}
             onResolve={async () => {}}
             resolveSprite={placeholder}
@@ -612,7 +617,7 @@ describe("sidebar components", () => {
       )
       expect(frame).toContain(catchLabel)
       expect(frame).toContain(runLabel)
-      expect(indicator?.fg).toEqual(RGBA.fromHex(caughtColor))
+      expect(indicator?.fg).toEqual(caught ? surface.success : surface.muted)
     },
   )
 
@@ -623,7 +628,6 @@ describe("sidebar components", () => {
         <EncounterCard
           encounter={() => null}
           hoveredAction={() => null}
-          mutedColor={() => "#808080"}
           onHover={() => {}}
           onResolve={async () => {}}
           resolveSprite={placeholder}
@@ -767,6 +771,7 @@ describe("sidebar components", () => {
 
   testTui("refreshes the localized choice card when the queued move becomes active", async () => {
     // GIVEN
+    const surface = makePokecodeSurface()
     const pokemonId = "00000000-0000-4000-8000-000000000021"
     const base = pokemonInstanceSchema.parse({
       id: pokemonId,
@@ -812,6 +817,7 @@ describe("sidebar components", () => {
           resolveSprite={placeholder}
           imageProtocol={() => "auto"}
           language={() => "es"}
+          theme={() => surface}
         />
       ),
       { width: 40, height: 48 },
@@ -827,7 +833,7 @@ describe("sidebar components", () => {
     const grayNames = rendered
       .captureSpans()
       .lines.flatMap((line) => line.spans)
-      .filter((span) => span.bg.equals(RGBA.fromHex("#6b7280")))
+      .filter((span) => span.bg.equals(surface.secondary.background))
       .map((span) => span.text)
       .join("")
     expect(grayNames).toContain("Pistola Agua")

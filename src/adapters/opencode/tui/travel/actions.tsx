@@ -3,6 +3,7 @@ import type { SpriteResolver } from "../../../sprites/contracts.js"
 import type { createPokemonTuiClient } from "../client.js"
 import type { ImageProtocolAccessor } from "../components/image-protocol.js"
 import type { createTuiStateCoordinator } from "../state/coordinator.js"
+import type { PokecodeTheme } from "../theme.js"
 import { LocationTravelDialog } from "./dialog.js"
 import { locationTravelProjection } from "./projection.js"
 
@@ -16,6 +17,7 @@ export function createLocationTravelAction(dependencies: {
   readonly dialog: Pick<Context["ui"]["dialog"], "show" | "set" | "clear">
   readonly resolveSprite: SpriteResolver
   readonly imageProtocol: ImageProtocolAccessor
+  readonly theme: () => PokecodeTheme
   readonly travelToLocation: (locationId: string) => Promise<void>
 }) {
   return async (): Promise<void> => {
@@ -42,6 +44,7 @@ export function createLocationTravelAction(dependencies: {
         }}
         resolveSprite={dependencies.resolveSprite}
         imageProtocol={dependencies.imageProtocol}
+        theme={dependencies.theme}
       />
     ))
     dependencies.dialog.set({ size: "large", centered: true })
