@@ -10,6 +10,7 @@ import type { SpriteResolver } from "../../../sprites/contracts.js"
 import { PendingChoiceCard, RegionChoiceCard } from "../choices/cards.js"
 import { EncounterCard } from "../choices/encounter.js"
 import { PokecodeActionButton } from "../components/action-button.js"
+import type { ImageProtocolAccessor } from "../components/image-protocol.js"
 import { Sprite } from "../components/sprite.js"
 
 type SidebarViewKind = "starter" | "move" | "evolution" | "region" | "encounter" | "team"
@@ -41,6 +42,7 @@ export function SidebarView(properties: {
   readonly onResolveEvolution: (choiceId: string, selectedSpeciesId: string) => Promise<void>
   readonly onResolveMove: (choiceId: string, selectedMoveId: string) => Promise<void>
   readonly resolveSprite: SpriteResolver
+  readonly imageProtocol: ImageProtocolAccessor
   readonly setHoveredEncounterAction: (action: "catch" | "run" | null) => void
   readonly starterHoverBackground: string | Accessor<string>
   readonly state: () => GameState
@@ -71,6 +73,7 @@ export function SidebarView(properties: {
             onChoose={properties.onChooseStarter}
             onHover={properties.hoverStarter}
             resolveSprite={properties.resolveSprite}
+            imageProtocol={properties.imageProtocol}
           />
         </Match>
         <Match when={view() === "move" || view() === "evolution"}>
@@ -79,6 +82,7 @@ export function SidebarView(properties: {
             onResolveEvolution={properties.onResolveEvolution}
             onResolveMove={properties.onResolveMove}
             resolveSprite={properties.resolveSprite}
+            imageProtocol={properties.imageProtocol}
             language={() => properties.state().locale}
           />
         </Match>
@@ -105,6 +109,7 @@ export function SidebarView(properties: {
                 onHover={properties.setHoveredEncounterAction}
                 onResolve={properties.onResolveEncounter}
                 resolveSprite={properties.resolveSprite}
+                imageProtocol={properties.imageProtocol}
                 language={() => properties.state().locale}
               />
             )}
@@ -116,6 +121,7 @@ export function SidebarView(properties: {
             language={() => properties.state().locale}
             party={() => properties.state().party}
             resolveSprite={properties.resolveSprite}
+            imageProtocol={properties.imageProtocol}
           />
         </Match>
       </Switch>
@@ -125,6 +131,7 @@ export function SidebarView(properties: {
 
 type StarterButtonsProperties = {
   readonly resolveSprite: SpriteResolver
+  readonly imageProtocol: ImageProtocolAccessor
   readonly regionId?: () => string | undefined
   readonly hovered: () => string | null
   readonly hoverBackground: string | Accessor<string>
@@ -232,6 +239,7 @@ function StarterRegionCard(
                   width={9}
                   language={properties.language}
                   resolve={properties.resolveSprite}
+                  protocol={properties.imageProtocol}
                   shiny={false}
                   gender="male"
                   speciesId={starter.speciesId}
@@ -300,6 +308,7 @@ export function PartyGrid(properties: {
   readonly language?: (() => GameState["locale"]) | undefined
   readonly party: () => GameState["party"]
   readonly resolveSprite: SpriteResolver
+  readonly imageProtocol: ImageProtocolAccessor
 }) {
   const occupiedSlots = () => properties.party().filter((slot) => slot.pokemon !== null)
   return (
@@ -307,16 +316,19 @@ export function PartyGrid(properties: {
       <PartyRow
         language={properties.language}
         resolveSprite={properties.resolveSprite}
+        imageProtocol={properties.imageProtocol}
         slots={() => occupiedSlots().slice(0, 2)}
       />
       <PartyRow
         language={properties.language}
         resolveSprite={properties.resolveSprite}
+        imageProtocol={properties.imageProtocol}
         slots={() => occupiedSlots().slice(2, 4)}
       />
       <PartyRow
         language={properties.language}
         resolveSprite={properties.resolveSprite}
+        imageProtocol={properties.imageProtocol}
         slots={() => occupiedSlots().slice(4, 6)}
       />
     </box>
@@ -327,6 +339,7 @@ function PartyRow(properties: {
   readonly language?: (() => GameState["locale"]) | undefined
   readonly slots: () => GameState["party"]
   readonly resolveSprite: SpriteResolver
+  readonly imageProtocol: ImageProtocolAccessor
 }) {
   return (
     <box flexDirection="row" gap={1}>
@@ -337,6 +350,7 @@ function PartyRow(properties: {
               <Sprite
                 language={properties.language}
                 resolve={properties.resolveSprite}
+                protocol={properties.imageProtocol}
                 shiny={slot.pokemon.shiny}
                 gender={slot.pokemon.gender}
                 speciesId={slot.pokemon.speciesId}

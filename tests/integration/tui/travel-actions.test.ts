@@ -36,6 +36,7 @@ describe("location travel action", () => {
         clear: () => dialog.push("clear"),
       },
       resolveSprite: async () => ({ kind: "placeholder" }),
+      imageProtocol: () => "auto",
       travelToLocation: async () => {},
     })
 
@@ -68,6 +69,7 @@ describe("location travel action", () => {
       state,
       dialog: { show: () => calls.push("show"), set: () => calls.push("set"), clear: () => {} },
       resolveSprite: async () => ({ kind: "placeholder" }),
+      imageProtocol: () => "auto",
       travelToLocation: async () => {},
     })
     await action()

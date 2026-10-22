@@ -5,6 +5,7 @@ import { createSignal } from "solid-js"
 import type { SpriteResolver } from "../../sprites/contracts.js"
 import { PokecodeRpc } from "../rpc/contract.js"
 import { createPokemonTuiClient } from "./client.js"
+import { createImageProtocolState } from "./components/image-protocol.js"
 import { createDexAction } from "./dex/actions.js"
 import { createExportAction } from "./export/actions.js"
 import { createPcAction } from "./pc/actions.js"
@@ -41,16 +42,20 @@ export function createPokemonTuiPlugin(dependencies = defaultDependencies) {
       let clipboard: TuiClipboard | undefined
       let unsubscribe: (() => void) | undefined
       let unregisterSlot: (() => void) | undefined
+      let disposeImageProtocol: (() => void) | undefined
       const cleanup = createTuiCleanup({
         state,
         unsubscribe: () => unsubscribe?.(),
         unregisterSlot: () => unregisterSlot?.(),
         disposeClipboard: () => clipboard?.dispose(),
+        disposeImageProtocol: () => disposeImageProtocol?.(),
       })
 
       try {
         const rpc = createPokemonTuiClient(context.client.rpc(PokecodeRpc))
         clipboard = dependencies.createClipboard(context)
+        const imageProtocol = createImageProtocolState(context.renderer)
+        disposeImageProtocol = imageProtocol.dispose
         const initialStatus = await rpc.status({})
         state.initialize(initialStatus)
         unsubscribe = rpc.onStatusChanged(state.apply)
@@ -71,6 +76,7 @@ export function createPokemonTuiPlugin(dependencies = defaultDependencies) {
           state,
           dialog: context.ui.dialog,
           resolveSprite,
+          imageProtocol: imageProtocol.protocol,
           travelToLocation: sidebarActions.travelToLocation,
         })
         const showDex = createDexAction({ rpc, state, dialog: context.ui.dialog })
@@ -83,6 +89,7 @@ export function createPokemonTuiPlugin(dependencies = defaultDependencies) {
             muted: () => context.theme.text.muted,
           },
           resolveSprite,
+          imageProtocol: imageProtocol.protocol,
         })
         const exportTeam = createExportAction({
           rpc,
@@ -107,6 +114,7 @@ export function createPokemonTuiPlugin(dependencies = defaultDependencies) {
           chooseParty,
           exportTeam,
           resolveSprite,
+          imageProtocol: imageProtocol.protocol,
         })
 
         return cleanup

@@ -58,6 +58,7 @@ describe("sidebar components", () => {
             spriteRequests.push(args)
             return { kind: "placeholder" }
           }}
+          imageProtocol={() => "auto"}
           setHoveredEncounterAction={() => {}}
           starterHoverBackground="#808080"
           state={state}
@@ -183,6 +184,7 @@ describe("sidebar components", () => {
           onResolveEvolution={async () => {}}
           onResolveMove={async () => {}}
           resolveSprite={placeholder}
+          imageProtocol={() => "auto"}
           setHoveredEncounterAction={() => {}}
           starterHoverBackground="#808080"
           state={() =>
@@ -346,6 +348,7 @@ describe("sidebar components", () => {
               spriteRequests.push(args)
               return { kind: "placeholder" }
             }}
+            imageProtocol={() => "auto"}
           />
         ),
         { width: 34, height: 48 },
@@ -426,6 +429,7 @@ describe("sidebar components", () => {
       () => (
         <StarterButtons
           resolveSprite={placeholder}
+          imageProtocol={() => "auto"}
           hovered={() => null}
           hoverBackground="#808080"
           onChoose={async () => {}}
@@ -454,6 +458,7 @@ describe("sidebar components", () => {
       () => (
         <StarterButtons
           resolveSprite={placeholder}
+          imageProtocol={() => "auto"}
           hovered={() => null}
           hoverBackground="#808080"
           onChoose={async (regionId, speciesId) => {
@@ -587,6 +592,7 @@ describe("sidebar components", () => {
             onHover={() => {}}
             onResolve={async () => {}}
             resolveSprite={placeholder}
+            imageProtocol={() => "auto"}
           />
         ),
         { width: 40, height: 12 },
@@ -621,6 +627,7 @@ describe("sidebar components", () => {
           onHover={() => {}}
           onResolve={async () => {}}
           resolveSprite={placeholder}
+          imageProtocol={() => "auto"}
         />
       ),
       { width: 40, height: 12 },
@@ -657,6 +664,7 @@ describe("sidebar components", () => {
             { position: 2, pokemon },
           ]}
           resolveSprite={placeholder}
+          imageProtocol={() => "auto"}
         />
       ),
       { width: 40, height: 10 },
@@ -713,6 +721,7 @@ describe("sidebar components", () => {
             choicePokemon={() => [pokemon]}
             onResolve={async () => {}}
             resolveSprite={placeholder}
+            imageProtocol={() => "auto"}
             language={() => "es"}
           />
         ),
@@ -801,6 +810,7 @@ describe("sidebar components", () => {
           onResolveMove={async () => {}}
           onResolveEvolution={async () => {}}
           resolveSprite={placeholder}
+          imageProtocol={() => "auto"}
           language={() => "es"}
         />
       ),

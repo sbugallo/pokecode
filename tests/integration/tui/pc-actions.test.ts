@@ -21,6 +21,7 @@ describe("PC actions", () => {
       },
       theme: { base: () => "white", muted: () => "gray" },
       resolveSprite: async () => ({ kind: "placeholder" }),
+      imageProtocol: () => "auto",
     })
     await action()
     expect(settings).toEqual([{ size: "large", centered: true }])
@@ -41,6 +42,7 @@ describe("PC actions", () => {
       },
       theme: { base: () => "white", muted: () => "gray" },
       resolveSprite: async () => ({ kind: "placeholder" }),
+      imageProtocol: () => "auto",
     })
     const completion = action()
 

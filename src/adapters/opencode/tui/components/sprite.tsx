@@ -2,6 +2,7 @@ import { createSignal, Show } from "solid-js"
 import type { Language } from "../../../../domain/shared/language.js"
 import { uiCopy } from "../../../presentation/ui-copy.js"
 import type { SpriteInput, SpriteResolution, SpriteResolver } from "../../../sprites/contracts.js"
+import type { ImageProtocolAccessor } from "./image-protocol.js"
 import { createOwnerBoundCallback } from "./owner.js"
 
 export function Sprite(properties: {
@@ -11,6 +12,7 @@ export function Sprite(properties: {
   readonly speciesId: string
   readonly language?: (() => Language) | undefined
   readonly compactFallback?: boolean | undefined
+  readonly protocol?: ImageProtocolAccessor | undefined
   readonly width?: number | undefined
   readonly height?: number | undefined
 }) {
@@ -43,7 +45,13 @@ export function Sprite(properties: {
       }
     >
       {(cachedSource: () => string) => (
-        <image source={cachedSource()} fit="fit" width={width} height={height} />
+        <image
+          source={cachedSource()}
+          fit="fit"
+          width={width}
+          height={height}
+          protocol={properties.protocol?.() ?? "auto"}
+        />
       )}
     </Show>
   )

@@ -28,7 +28,11 @@ function makeContext(
 ): Context {
   return {
     client: { rpc: () => transport },
-    renderer: {},
+    renderer: {
+      capabilities: null,
+      on: () => {},
+      off: () => {},
+    },
     theme: { text: { base: "white", muted: "gray" } },
     ui: {
       toast: {

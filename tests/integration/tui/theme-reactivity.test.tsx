@@ -39,6 +39,7 @@ describe("reactive TUI theme accessors", () => {
       dialog,
       theme: { base, muted },
       resolveSprite: async () => ({ kind: "placeholder" }),
+      imageProtocol: () => "auto",
     })
     await chooseParty()
     if (renderDialog === undefined) throw new Error("PC workflow did not request its dialog")
@@ -50,6 +51,7 @@ describe("reactive TUI theme accessors", () => {
           <StarterButtons
             regionId={() => "kanto"}
             resolveSprite={async () => ({ kind: "placeholder" })}
+            imageProtocol={() => "auto"}
             hovered={() => "bulbasaur"}
             hoverBackground={muted}
             onChoose={async () => {}}

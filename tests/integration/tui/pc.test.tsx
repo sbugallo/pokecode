@@ -52,6 +52,7 @@ async function renderPc(
           onRename={options.onRename ?? (async () => "renamed")}
           onRelease={options.onRelease ?? (async () => "released")}
           resolveSprite={async () => ({ kind: "placeholder" })}
+          imageProtocol={() => "auto"}
         />
       </box>
     ),
@@ -219,6 +220,7 @@ describe("Pokémon PC dialog", () => {
             language={language}
             textColor="#d1d5db"
             resolveSprite={async () => ({ kind: "placeholder" })}
+            imageProtocol={() => "auto"}
           />
         ),
         { width: 40, height: 30 },
@@ -530,6 +532,7 @@ describe("Pokémon PC dialog", () => {
             language={language}
             textColor="#d1d5db"
             resolveSprite={async () => ({ kind: "placeholder" })}
+            imageProtocol={() => "auto"}
           />
         ),
         { width: 40, height: 30 },

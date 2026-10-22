@@ -6,6 +6,7 @@ import { pokemonStats } from "../../../../domain/pokemon/stats.js"
 import type { Language } from "../../../../domain/shared/language.js"
 import { pcCopy } from "../../../presentation/pc-copy.js"
 import type { SpriteResolver } from "../../../sprites/contracts.js"
+import type { ImageProtocolAccessor } from "../components/image-protocol.js"
 import { MoveList } from "../components/move-list.js"
 import { Sprite } from "../components/sprite.js"
 
@@ -16,6 +17,7 @@ export function PcDetails(properties: {
   readonly language: Language
   readonly textColor: string
   readonly resolveSprite: SpriteResolver
+  readonly imageProtocol: ImageProtocolAccessor
 }) {
   const copy = () => pcCopy(properties.language)
   const values = () => pokemonStats(properties.pokemon)
@@ -33,6 +35,7 @@ export function PcDetails(properties: {
         <Sprite
           language={() => properties.language}
           resolve={properties.resolveSprite}
+          protocol={properties.imageProtocol}
           shiny={properties.pokemon.shiny}
           gender={properties.pokemon.gender}
           speciesId={properties.pokemon.speciesId}

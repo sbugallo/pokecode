@@ -3,6 +3,7 @@ import type { PendingEncounter } from "../../../../domain/encounters/encounter.j
 import { uiCopy } from "../../../presentation/ui-copy.js"
 import type { SpriteResolver } from "../../../sprites/contracts.js"
 import { PokecodeActionButton } from "../components/action-button.js"
+import type { ImageProtocolAccessor } from "../components/image-protocol.js"
 import { Sprite } from "../components/sprite.js"
 
 export function EncounterCard(properties: {
@@ -16,6 +17,7 @@ export function EncounterCard(properties: {
     capture: boolean,
   ) => Promise<void>
   readonly resolveSprite: SpriteResolver
+  readonly imageProtocol: ImageProtocolAccessor
   readonly language?: (() => GameState["locale"]) | undefined
 }) {
   const encounter = properties.encounter()
@@ -46,6 +48,7 @@ export function EncounterCard(properties: {
       <Sprite
         language={properties.language}
         resolve={properties.resolveSprite}
+        protocol={properties.imageProtocol}
         shiny={encounter.shiny}
         gender={encounter.gender}
         speciesId={encounter.speciesId}

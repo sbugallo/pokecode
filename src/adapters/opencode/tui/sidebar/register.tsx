@@ -4,6 +4,7 @@ import type { GameState } from "../../../../application/contracts/game.js"
 import { uiCopy } from "../../../presentation/ui-copy.js"
 import type { SpriteResolver } from "../../../sprites/contracts.js"
 import { DexCommand, ExportCommand, LocationsCommand, PcCommand } from "../commands/commands.js"
+import type { ImageProtocolAccessor } from "../components/image-protocol.js"
 import type { createSidebarActions } from "./actions.js"
 import { SidebarView } from "./view.js"
 
@@ -23,6 +24,7 @@ export function registerPokemonSidebar(dependencies: {
   readonly chooseParty: () => Promise<void>
   readonly exportTeam: () => Promise<void>
   readonly resolveSprite: SpriteResolver
+  readonly imageProtocol: ImageProtocolAccessor
 }) {
   const copy = () => uiCopy(dependencies.state().locale)
   return dependencies.slot({
@@ -58,6 +60,7 @@ export function registerPokemonSidebar(dependencies: {
           onResolveEvolution={dependencies.actions.resolveEvolutionChoice}
           onResolveMove={dependencies.actions.resolveMoveChoice}
           resolveSprite={dependencies.resolveSprite}
+          imageProtocol={dependencies.imageProtocol}
           setHoveredEncounterAction={dependencies.setHoveredEncounterAction}
           starterHoverBackground={dependencies.theme.muted}
           state={dependencies.state}
