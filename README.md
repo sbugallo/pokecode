@@ -54,7 +54,7 @@ Your active team gains experience from the tokens reported for completed assista
 includes input, output, reasoning, and cache read/write tokens. Usage is deduplicated across 
 sessions and restarts so the same message is never counted twice.
 
-By default, **every 1,000 counted tokens grants 1 XP to each active Pokémon**. Fractional XP carries 
+**Every 1,000 counted tokens grants 1 XP to each active Pokémon**. Fractional XP carries 
 forward. Your team can hold up to six Pokémon, and only active team members earn new XP; Pokémon in 
 the PC remain idle. The level cap is 100.
 
@@ -166,10 +166,13 @@ evolve during the next applied usage event; it does not have to hit the exact le
 
 Start in any of the nine regions and choose one of its three native starters.
 
-By default, spending **2,160,000 eligible tokens at your newest unlocked location** unlocks the 
-next stop. Use `/pokecode-locations` to travel there before working toward the following location.
-Returning to an older location preserves your unlock progress, but usage there does not advance the
-next unlock.
+Each location has its own unlock cost, charged for eligible tokens spent at your newest unlocked
+location. Costs follow a power curve over the location's position in its region's story, normalized
+by region length and calibrated against main-series gym-leader and champion ace levels, so your
+party keeps pace with the narrative. After a region's champion, further locations cost no more than
+the final approach. Use `/pokecode-locations` to travel there before working toward the following
+location. Returning to an older location preserves your unlock progress, but usage there does not
+advance the next unlock.
 
 A single usage event can unlock at most one location; excess unlock progress is discarded. Travel is
 always manual, even in continuous mode.
@@ -262,10 +265,11 @@ default:
       "options": {
         "language": "en",
         "pauseOnPendingChoice": true,
-        "xpTokensPerPoint": 1000,
         "encounterMinimumTokens": 200000,
         "encounterMaximumTokens": 400000,
-        "locationUnlockTokens": 2160000
+        "locationUnlockBaseTokens": 4214000,
+        "locationUnlockExponent": 2.64,
+        "locationUnlockRegionExponent": -1.72
       }
     }
   ]
@@ -276,13 +280,15 @@ default:
 | --- | --- |
 | `language` | `en` for English or `es` for Spanish. Localizes Pokémon, locations, regions, moves, abilities, and interface text. Missing translations fall back to English. |
 | `pauseOnPendingChoice` | Pauses XP, encounters, and exploration while decisions are pending. Set to `false` for continuous progression and persistent queues. |
-| `xpTokensPerPoint` | Counted tokens required for 1 XP per active Pokémon. Lower values mean faster leveling. |
 | `encounterMinimumTokens` | Minimum eligible-token interval between encounter opportunities. |
 | `encounterMaximumTokens` | Maximum eligible-token interval between encounter opportunities. |
-| `locationUnlockTokens` | Eligible tokens required at the newest unlocked location to unlock the next stop. |
+| `locationUnlockBaseTokens` | Scale of the location-unlock cost curve. |
+| `locationUnlockExponent` | How quickly unlock costs grow along a region's story. |
+| `locationUnlockRegionExponent` | Normalization applied by region length so short and long regions pace alike. Typically negative. |
 
-Token thresholds must be positive integers. Reload or restart OpenCode after changing options.
-Because the save is shared, use consistent gameplay settings across concurrently running instances.
+Token thresholds must be positive integers; the exponents are plain numbers. Reload or restart
+OpenCode after changing options. Because the save is shared, use consistent gameplay settings
+across concurrently running instances.
 
 ## Storage
 
