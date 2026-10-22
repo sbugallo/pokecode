@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-22
+
 ### Fixed
 
 - TUI colors now come from the active OpenCode theme instead of hardcoded hex values, so plain text,
